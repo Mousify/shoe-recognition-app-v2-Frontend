@@ -38,8 +38,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // Convert the uploaded image to a Base64 string
       const base64Image = await convertImageToBase64(imageFile);
 
+      // Update with the backend URL of your Render deployment
+      const backendURL =
+        "https://shoe-recognition-app-v2-backend.onrender.com/analyze-shoe"; // Replace with your actual Render back-end URL
+
       // Send the image and problem description to the backend
-      const response = await fetch("http://192.168.1.163:3000/analyze-shoe", {
+      const response = await fetch(backendURL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
