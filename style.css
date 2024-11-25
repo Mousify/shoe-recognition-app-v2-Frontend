@@ -1,7 +1,27 @@
+/* Headings */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: "DM Sans", sans-serif;
+  font-weight: bold; /* Medium weight */
+  letter-spacing: 1px;
+}
+
+/* Body text */
+body,
+p,
+span,
+div {
+  font-family: "Jost", sans-serif;
+  font-weight: 400; /* Regular weight */
+  letter-spacing: 1px;
+}
+
 body {
   background-color: #f4f4f4; /* Light background color */
-  font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond,
-    "Times New Roman", serif;
   font-style: normal;
   font-variant: normal;
   font-weight: 700;
@@ -71,12 +91,9 @@ input[type="file"] {
   transition: background-color 0.3s;
   display: block;
   margin: 10px 0;
-  font-family: Baskerville, "Baskerville Old Face", "Hoefler Text", Garamond,
-    "Times New Roman", serif;
-  font-style: normal;
-  font-variant: normal;
-  font-weight: 700;
-  letter-spacing: 2px;
+  font-family: "Jost", sans-serif;
+  font-weight: 400; /* Regular weight */
+  letter-spacing: 1px;
   font-size: 17px;
 }
 
@@ -123,10 +140,11 @@ textarea::placeholder {
 
 /* Style for the entire result container */
 .result-container {
+  letter-spacing: 1px;
   color: #ffffff; /* Main text color */
   font-size: 14px; /* Adjust the text size */
   line-height: 1.6; /* Slightly increased line height for better readability */
-  background-color: #54483c; /* Light background color for the container */
+  background-color: #726252; /* Light background color for the container */
   padding: 20px 15px; /* Increased padding for a bit more space */
   border-radius: 8px; /* Rounded corners */
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Light shadow for aesthetics */
