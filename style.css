@@ -5,9 +5,10 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: "DM Sans", sans-serif;
   font-weight: bold; /* Medium weight */
   letter-spacing: 1px;
+  text-transform: uppercase;
+  font-family: "DM Sans", sans-serif;
 }
 
 /* Body text */
@@ -27,34 +28,39 @@ body {
   font-weight: 700;
   margin: 0;
   padding: 20px;
+  scroll-behavior: smooth; /* Smooth scrolling for better UX */
 }
 
+/* Container */
 .container {
   border: 2px solid #3e342b;
   padding: 20px;
-  border-radius: 8px;
+  border-radius: 16px; /* Softer corners for modern look */
   background-color: #54483c;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.685);
-  max-width: 800px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3); /* More dramatic shadow */
+  max-width: 425px;
   margin: 0 auto;
+  transition: transform 0.3s ease-in-out; /* Smooth hover effect */
 }
 
+/* Headings */
 h1 {
   color: #ffffff;
-  text-align: center;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5); /* Subtle text shadow */
 }
 
+/* File upload */
 .file-upload {
   margin-bottom: 20px;
 }
 
-/* Styling for the labels and input fields */
+/* Styling for labels and input fields */
 .input-label {
   color: #ffffff;
-  text-align: left;
   display: block;
   margin: 10px 0;
-  font-size: 17px;
+  font-size: 1.1rem;
 }
 
 /* File input button styling */
@@ -66,18 +72,26 @@ input[type="file"] {
   background-color: #b7aca2;
   color: #ffffff;
   border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+  padding: 12px 18px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: transform 0.3s, background-color 0.3s;
   text-align: center;
   margin: 10px 0;
   display: inline-block;
-  letter-spacing: 2px;
+  font-size: 1rem;
+  letter-spacing: 1px;
+  font-weight: bold;
 }
 
 .file-label:hover {
   background-color: #968c84;
+  transform: scale(1.05); /* Slight zoom on hover */
+}
+
+.button:hover {
+  background-color: #968c84;
+  transform: scale(1.05); /* Slight zoom on hover */
 }
 
 /* Button Styling */
@@ -85,36 +99,37 @@ input[type="file"] {
   background-color: #b7aca2;
   color: #ffffff;
   border: none;
-  padding: 10px 15px;
-  border-radius: 5px;
+  padding: 12px 18px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: background-color 0.3s;
+  transition: transform 0.3s, background-color 0.3s;
   display: block;
-  margin: 10px 0;
   font-family: "Jost", sans-serif;
-  font-weight: 400; /* Regular weight */
-  letter-spacing: 1px;
-  font-size: 17px;
+  font-size: 1rem;
+  letter-spacing: 2px;
+  font-weight: bold;
 }
 
 .button:hover {
   background-color: #968c84;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Subtle shadow on hover */
 }
 
 /* Textarea fields */
 textarea {
   width: 250px; /* Fixed width */
-  min-height: 20px; /* Minimum height */
+  min-height: 20px;
   padding: 10px;
   border: 2px solid #3e342b;
-  border-radius: 5px;
+  border-radius: 10px;
   margin: 10px 0;
-  resize: none; /* Disable resizing */
+  background-color: #fff;
+  font-size: 1rem;
+  resize: none;
 }
 
-/* Placeholder text styling */
 textarea::placeholder {
-  color: rgba(0, 0, 0, 0.3); /* Transparent gray text */
+  color: rgba(0, 0, 0, 0.4); /* Softer placeholder */
   font-style: italic;
 }
 
@@ -132,62 +147,59 @@ textarea::placeholder {
 #previewImage {
   display: none;
   max-width: 100%;
-  max-height: 200px; /* Ensures the preview does not exceed a height of 200px */
+  max-height: 200px;
   margin: 10px 0;
-  border: 2px solid #3e342b;
-  border-radius: 5px;
+  border: 3px solid #3e342b;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Style for the entire result container */
+/* Result container */
 .result-container {
   letter-spacing: 1px;
-  color: #ffffff; /* Main text color */
-  font-size: 14px; /* Adjust the text size */
-  line-height: 1.6; /* Slightly increased line height for better readability */
-  background-color: #726252; /* Light background color for the container */
-  padding: 20px 15px; /* Increased padding for a bit more space */
-  border-radius: 8px; /* Rounded corners */
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Light shadow for aesthetics */
-  max-width: 100%; /* Ensure it fits the container width */
-  margin: 20px auto; /* Center the result block on the page */
-  word-wrap: break-word; /* Allow text to wrap inside the container */
-  border: 2px solid #3e342b; /* Darker green border */
+  color: #ffffff;
+  font-size: 1rem;
+  line-height: 1.6;
+  background-color: #726252;
+  padding: 20px 15px;
+  border-radius: 12px; /* Modern rounded corners */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+  max-width: 100%;
+  margin: 20px auto;
+  border: 2px solid #3e342b;
+  animation: fadeIn 0.5s ease-in-out; /* Smooth appearance */
 }
 
-/* Style for the list items */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* List styling */
 .result-container ul {
-  margin: 10px 0; /* Added more space between the list and other elements */
+  margin: 10px 0;
   padding: 0;
   padding-left: 20px;
 }
 
 .result-container ul li {
   font-size: 1rem;
-  color: #ffffff; /* Ensure list items match the main text color */
   line-height: 1.5;
   margin: 5px 0;
-  padding: 0;
 }
 
-/* Style for headings in the content */
 .result-container strong {
   font-weight: bold;
 }
 
-/* Style for paragraphs */
 .result-container p {
-  font-size: 1rem;
-  color: #ffffff; /* Use the same green shade for text */
-  margin-bottom: 10px; /* Increased margin for better spacing */
-}
-
-/* Adjust for text overflow */
-.result-container pre {
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  white-space: pre-wrap;
-  color: #ffffff; /* Consistent text color */
-  font-size: 14px;
+  margin-bottom: 10px;
 }
 
 ul,
@@ -195,4 +207,34 @@ li,
 div {
   margin: 0;
   padding: 0;
+}
+
+/* CSS Variables for easier theme management */
+:root {
+  --primary-bg: #54483c;
+  --secondary-bg: #726252;
+  --border-color: #3e342b;
+  --button-bg: #b7aca2;
+  --button-hover-bg: #968c84;
+  --text-color: #ffffff;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px; /* Width of the scrollbar */
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--button-bg); /* Color of the scrollbar thumb */
+  border-radius: 10px; /* Rounded corners for the scrollbar thumb */
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--button-hover-bg); /* Darker color when hovered */
+}
+
+/* Placeholder text styling */
+textarea::placeholder {
+  color: rgba(0, 0, 0, 0.3); /* Transparent gray text */
+  font-style: italic;
 }
