@@ -3,76 +3,272 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Shoe Recognition App</title>
+    <title>AI Shoe Assistant</title>
     <link rel="stylesheet" href="style.css" />
     <link
-      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@500&family=Jost:wght@400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Jost:wght@300;400;500&display=swap"
       rel="stylesheet"
     />
-
-    <!-- Link to your custom CSS file -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
   </head>
-
   <body>
     <div class="container">
-      <h1>Shoe Recognition</h1>
+      <header>
+        <h1>AI Shoe Assistant</h1>
+        <div class="language-selector">
+          <select id="languageSelect">
+            <option value="en">English</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="de">Deutsch</option>
+          </select>
+        </div>
+      </header>
 
-      <!-- File Upload Section -->
-      <div class="file-upload">
-        <input
-          type="file"
-          id="shoeImage"
-          accept="image/*"
+      <main>
+        <!-- Upload Section -->
+        <section class="upload-section">
+          <div class="upload-container" id="dropZone">
+            <div class="upload-icon">
+              <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <p id="uploadText">
+              Drag & drop your shoe image or click to browse
+            </p>
+            <input type="file" id="shoeImage" accept="image/*" hidden />
+            <button class="browse-btn" id="browseBtn">Browse Files</button>
+          </div>
+
+          <!-- Image Preview & Editor Section -->
+          <div
+            class="image-editor-container"
+            id="imageEditorContainer"
+            style="display: none"
+          >
+            <div class="image-preview-wrapper">
+              <img id="previewImage" alt="Shoe Preview" />
+              <div class="edit-controls">
+                <button id="rotateLeftBtn" class="edit-btn" title="Rotate Left">
+                  <i class="fas fa-undo"></i>
+                </button>
+                <button
+                  id="rotateRightBtn"
+                  class="edit-btn"
+                  title="Rotate Right"
+                >
+                  <i class="fas fa-redo"></i>
+                </button>
+                <button id="zoomInBtn" class="edit-btn" title="Zoom In">
+                  <i class="fas fa-search-plus"></i>
+                </button>
+                <button id="zoomOutBtn" class="edit-btn" title="Zoom Out">
+                  <i class="fas fa-search-minus"></i>
+                </button>
+                <button id="resetBtn" class="edit-btn" title="Reset">
+                  <i class="fas fa-sync-alt"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Input Section -->
+        <section class="input-section">
+          <div class="input-group">
+            <label for="shoeBrand" class="input-label">
+              <i class="fas fa-tag"></i>
+              <span>Brand (optional)</span>
+              <i
+                class="fas fa-question-circle tooltip-icon"
+                data-tooltip="Providing the brand can improve recognition accuracy"
+              ></i>
+            </label>
+            <input
+              type="text"
+              id="shoeBrand"
+              placeholder="e.g., Nike, Adidas, Puma"
+            />
+          </div>
+
+          <div class="input-group">
+            <label for="problemDescription" class="input-label">
+              <i class="fas fa-exclamation-circle"></i>
+              <span>Describe the problem</span>
+              <i
+                class="fas fa-question-circle tooltip-icon"
+                data-tooltip="Describe what's wrong with your shoes"
+              ></i>
+            </label>
+            <textarea
+              id="problemDescription"
+              placeholder="e.g., Coffee stain on the fabric, scuff marks"
+            ></textarea>
+          </div>
+
+          <div class="input-group">
+            <label for="affectedPart" class="input-label">
+              <i class="fas fa-shoe-prints"></i>
+              <span>Affected part</span>
+              <i
+                class="fas fa-question-circle tooltip-icon"
+                data-tooltip="Specify which part of the shoe is affected"
+              ></i>
+            </label>
+            <textarea
+              id="affectedPart"
+              placeholder="e.g., Toe area, Heel, Sole"
+            ></textarea>
+          </div>
+        </section>
+
+        <!-- Action Buttons -->
+        <section class="action-section">
+          <button id="submitButton" class="button primary-btn" disabled>
+            <i class="fas fa-magic"></i> Analyze Shoe
+          </button>
+        </section>
+
+        <!-- Progress Section -->
+        <section
+          id="progressSection"
+          class="progress-section"
           style="display: none"
-        />
-        <label for="shoeImage" class="file-label" aria-label="Choose shoe image"
-          >Choose File</label
         >
-      </div>
+          <div class="progress-container">
+            <div class="progress-bar">
+              <div id="progressBar" class="progress-fill"></div>
+            </div>
+            <p id="statusMessage">Analyzing your shoe...</p>
+          </div>
+        </section>
 
-      <!-- Image Preview Section -->
-      <div class="image-preview">
-        <img
-          id="previewImage"
-          alt="Image Preview"
-          style="display: none; max-width: 100%; height: auto"
-        />
-      </div>
-
-      <!-- Problem Description Textbox -->
-      <div class="input-section">
-        <label for="problemDescription" class="input-label"
-          >Describe the problem with the shoe:</label
+        <!-- Results Section -->
+        <section
+          id="resultSection"
+          class="result-section"
+          style="display: none"
         >
-        <textarea
-          id="problemDescription"
-          placeholder="e.g., Torn fabric, dirty sole"
-        ></textarea>
-      </div>
+          <div class="result-header">
+            <h2>Analysis Results</h2>
+            <div class="result-actions">
+              <button
+                id="downloadPdfBtn"
+                class="action-btn"
+                title="Download as PDF"
+              >
+                <i class="fas fa-file-pdf"></i>
+              </button>
+              <button
+                id="shareResultsBtn"
+                class="action-btn"
+                title="Share Results"
+              >
+                <i class="fas fa-share-alt"></i>
+              </button>
+            </div>
+          </div>
 
-      <!-- Affected Part Textbox -->
-      <div class="input-section">
-        <label for="affectedPart" class="input-label"
-          >Which part of the shoe is affected?</label
-        >
-        <textarea id="affectedPart" placeholder="e.g., Toe, Heel"></textarea>
-      </div>
+          <div class="result-container" id="resultContainer">
+            <!-- Results will be populated here by JavaScript -->
+          </div>
+        </section>
 
-      <!-- Analyze Button -->
-      <div class="analyze-section">
-        <button id="submitButton" class="button" aria-label="Analyze image">
-          Analyze
-        </button>
-      </div>
+        <!-- Help Section -->
+        <section class="help-section">
+          <button id="helpToggleBtn" class="help-toggle-btn">
+            <i class="fas fa-question-circle"></i> Need Help?
+          </button>
+          <div id="helpContent" class="help-content" style="display: none">
+            <h3>How to Use This Tool</h3>
+            <ol>
+              <li>
+                Upload a clear photo of your shoe by dragging and dropping or
+                browsing files
+              </li>
+              <li>Optionally enter the brand name for better recognition</li>
+              <li>Describe the problem with your shoe</li>
+              <li>Specify which part of the shoe is affected</li>
+              <li>
+                Click "Analyze Shoe" to get personalized care recommendations
+              </li>
+            </ol>
+            <h3>Frequently Asked Questions</h3>
+            <div class="faq-item">
+              <h4>What types of shoes can I analyze?</h4>
+              <p>
+                Our AI can recognize and provide recommendations for most types
+                of footwear including sneakers, dress shoes, boots, and sandals.
+              </p>
+            </div>
+            <div class="faq-item">
+              <h4>How accurate is the recognition?</h4>
+              <p>
+                The accuracy depends on image quality and clarity. For best
+                results, use a well-lit photo showing the entire shoe.
+              </p>
+            </div>
+          </div>
+        </section>
+      </main>
 
-      <!-- Loading Spinner (visible when analysis is in progress) -->
-      <div id="spinner" class="spinner" style="display: none">Loading...</div>
+      <footer>
+        <p>&copy; 2024 AI Shoe Assistant. All rights reserved.</p>
+      </footer>
+    </div>
 
-      <!-- Response Section for Analysis Results -->
-      <div id="resultContainer" class="result-container" style="display: none">
-        <!-- The JavaScript will populate this section with analysis results -->
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h3>Share Results</h3>
+        <div class="share-options">
+          <button class="share-btn facebook">
+            <i class="fab fa-facebook-f"></i> Facebook
+          </button>
+          <button class="share-btn twitter">
+            <i class="fab fa-twitter"></i> Twitter
+          </button>
+          <button class="share-btn email">
+            <i class="fas fa-envelope"></i> Email
+          </button>
+          <button class="share-btn copy">
+            <i class="fas fa-copy"></i> Copy Link
+          </button>
+        </div>
       </div>
     </div>
+
+    <!-- Product Recommendations Modal -->
+    <div id="productsModal" class="modal">
+      <div class="modal-content products-modal">
+        <span class="close-btn">&times;</span>
+        <h3>Recommended Products</h3>
+        <div id="productsList" class="products-list">
+          <!-- Products will be populated here -->
+        </div>
+      </div>
+    </div>
+
+    <!-- Photo Quality Alert Modal -->
+    <div id="qualityAlertModal" class="modal">
+      <div class="modal-content">
+        <span class="close-btn">&times;</span>
+        <h3>Image Quality Issue</h3>
+        <p id="qualityIssueMessage">
+          Your photo appears to be too dark. For best results, please take a
+          photo in better lighting.
+        </p>
+        <button id="retakePhotoBtn" class="button primary-btn">
+          Upload New Photo
+        </button>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
   </body>
 </html>
