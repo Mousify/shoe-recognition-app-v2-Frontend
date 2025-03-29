@@ -26,8 +26,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Image editor controls
   const rotateLeftBtn = document.getElementById("rotateLeftBtn");
   const rotateRightBtn = document.getElementById("rotateRightBtn");
-  const zoomInBtn = document.getElementById("zoomInBtn");
-  const zoomOutBtn = document.getElementById("zoomOutBtn");
   const resetBtn = document.getElementById("resetBtn");
 
   // Close buttons for modals
@@ -38,15 +36,14 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentScale = 1;
   let currentLanguage = "en";
   let products = [];
-  let isCropping = false;
-  let cropStartX, cropStartY, cropEndX, cropEndY;
   let originalImageSrc = null;
 
-  // Translations
+  // Update the translations object to include all UI elements
   const translations = {
     en: {
       title: "AI Shoe Assistant",
       uploadText: "Drag & drop your shoe image or click to browse",
+      browseBtn: "Browse Files",
       brandLabel: "Brand & Model (optional)",
       brandPlaceholder: "e.g., Nike Air Jordan 1, Adidas Ultraboost",
       problemLabel: "Describe the problem",
@@ -54,11 +51,15 @@ document.addEventListener("DOMContentLoaded", () => {
       affectedPartLabel: "Affected part",
       affectedPartPlaceholder: "e.g., Toe area, Heel, Sole",
       analyzeButton: "Analyze Shoe",
+      retakePhoto: "Retake Photo",
+      editPhoto: "Edit Photo",
+      doneEditing: "Done",
       analyzing: "Analyzing your shoe...",
       processingImage: "Processing image...",
       analyzingShoe: "Analyzing shoe details...",
       gettingRecommendations: "Getting recommendations...",
       finalizing: "Finalizing results...",
+      analysisComplete: "Analysis Complete",
       resultsTitle: "Analysis Results",
       brandAndModel: "Brand and Model",
       materials: "Materials",
@@ -66,15 +67,46 @@ document.addEventListener("DOMContentLoaded", () => {
       generalCare: "General Care",
       needHelp: "Need Help?",
       howToUse: "How to Use This Tool",
+      howToUseSteps: [
+        "Upload a clear photo of your shoe by dragging and dropping or browsing files",
+        "Optionally enter the brand and model for better recognition",
+        "Describe the problem with your shoe",
+        "Specify which part of the shoe is affected",
+        'Click "Analyze Shoe" to get personalized care recommendations',
+      ],
       faq: "Frequently Asked Questions",
+      faqItems: [
+        {
+          question: "What types of shoes can I analyze?",
+          answer:
+            "Our AI can recognize and provide recommendations for most types of footwear including sneakers, dress shoes, boots, and sandals.",
+        },
+        {
+          question: "How accurate is the recognition?",
+          answer:
+            "The accuracy depends on image quality and clarity. For best results, use a well-lit photo showing the entire shoe.",
+        },
+      ],
       shareResults: "Share Results",
       recommendedProducts: "Recommended Products",
       imageQualityIssue: "Image Quality Issue",
-      retakePhoto: "Upload New Photo",
+      uploadNewPhoto: "Upload New Photo",
+      tryTextOnly: "Try with text only",
+      tooltips: {
+        brand: "Providing the brand and model can improve recognition accuracy",
+        problem: "Describe what's wrong with your shoes",
+        affectedPart: "Specify which part of the shoe is affected",
+      },
+      footer: "© 2024 AI Shoe Assistant. All rights reserved.",
+      viewProduct: "View Product",
+      noProducts: "No product recommendations available.",
+      needImageOrBrand:
+        "Please provide either an image or brand/model information",
     },
     ru: {
       title: "ИИ Помощник по Обуви",
       uploadText: "Перетащите изображение обуви или нажмите для выбора",
+      browseBtn: "Выбрать Файлы",
       brandLabel: "Бренд и модель (необязательно)",
       brandPlaceholder: "например, Nike Air Jordan 1, Adidas Ultraboost",
       problemLabel: "Опишите проблему",
@@ -82,11 +114,15 @@ document.addEventListener("DOMContentLoaded", () => {
       affectedPartLabel: "Поврежденная часть",
       affectedPartPlaceholder: "например, Носок, Пятка, Подошва",
       analyzeButton: "Анализировать Обувь",
+      retakePhoto: "Сделать Новое Фото",
+      editPhoto: "Редактировать Фото",
+      doneEditing: "Готово",
       analyzing: "Анализ вашей обуви...",
       processingImage: "Обработка изображения...",
       analyzingShoe: "Анализ деталей обуви...",
       gettingRecommendations: "Получение рекомендаций...",
       finalizing: "Завершение результатов...",
+      analysisComplete: "Анализ Завершен",
       resultsTitle: "Результаты Анализа",
       brandAndModel: "Бренд и Модель",
       materials: "Материалы",
@@ -94,15 +130,46 @@ document.addEventListener("DOMContentLoaded", () => {
       generalCare: "Общий Уход",
       needHelp: "Нужна Помощь?",
       howToUse: "Как Использовать Этот Инструмент",
+      howToUseSteps: [
+        "Загрузите четкую фотографию обуви, перетащив ее или выбрав файл",
+        "При желании укажите бренд и модель для лучшего распознавания",
+        "Опишите проблему с вашей обувью",
+        "Укажите, какая часть обуви повреждена",
+        'Нажмите "Анализировать Обувь", чтобы получить персонализированные рекомендации по уходу',
+      ],
       faq: "Часто Задаваемые Вопросы",
+      faqItems: [
+        {
+          question: "Какие типы обуви я могу анализировать?",
+          answer:
+            "Наш ИИ может распознавать и предоставлять рекомендации для большинства типов обуви, включая кроссовки, классическую обувь, ботинки и сандалии.",
+        },
+        {
+          question: "Насколько точно распознавание?",
+          answer:
+            "Точность зависит от качества и четкости изображения. Для лучших результатов используйте хорошо освещенную фотографию, показывающую всю обувь.",
+        },
+      ],
       shareResults: "Поделиться Результатами",
       recommendedProducts: "Рекомендуемые Продукты",
       imageQualityIssue: "Проблема с Качеством Изображения",
-      retakePhoto: "Загрузить Новое Фото",
+      uploadNewPhoto: "Загрузить Новое Фото",
+      tryTextOnly: "Попробовать только с текстом",
+      tooltips: {
+        brand: "Указание бренда и модели может улучшить точность распознавания",
+        problem: "Опишите, что не так с вашей обувью",
+        affectedPart: "Укажите, какая часть обуви повреждена",
+      },
+      footer: "© 2024 ИИ Помощник по Обуви. Все права защищены.",
+      viewProduct: "Посмотреть Товар",
+      noProducts: "Нет доступных рекомендаций по товарам.",
+      needImageOrBrand:
+        "Пожалуйста, предоставьте изображение или информацию о бренде/модели",
     },
     lt: {
       title: "AI Batų Asistentas",
       uploadText: "Tempkite batų nuotrauką arba spustelėkite naršyti",
+      browseBtn: "Naršyti Failus",
       brandLabel: "Prekės ženklas ir modelis (neprivaloma)",
       brandPlaceholder: "pvz., Nike Air Jordan 1, Adidas Ultraboost",
       problemLabel: "Aprašykite problemą",
@@ -110,11 +177,15 @@ document.addEventListener("DOMContentLoaded", () => {
       affectedPartLabel: "Paveikta dalis",
       affectedPartPlaceholder: "pvz., Pirštų sritis, Kulnas, Padas",
       analyzeButton: "Analizuoti Batus",
+      retakePhoto: "Perkrauti Nuotrauką",
+      editPhoto: "Redaguoti Nuotrauką",
+      doneEditing: "Baigta",
       analyzing: "Analizuojami jūsų batai...",
       processingImage: "Apdorojamas vaizdas...",
       analyzingShoe: "Analizuojamos batų detalės...",
       gettingRecommendations: "Gaunamos rekomendacijos...",
       finalizing: "Baigiami rezultatai...",
+      analysisComplete: "Analizė Baigta",
       resultsTitle: "Analizės Rezultatai",
       brandAndModel: "Prekės ženklas ir Modelis",
       materials: "Medžiagos",
@@ -122,15 +193,47 @@ document.addEventListener("DOMContentLoaded", () => {
       generalCare: "Bendra Priežiūra",
       needHelp: "Reikia Pagalbos?",
       howToUse: "Kaip Naudotis Šiuo Įrankiu",
+      howToUseSteps: [
+        "Įkelkite aiškią batų nuotrauką tempiant arba naršant failus",
+        "Pasirinktinai įveskite prekės ženklą ir modelį geresniam atpažinimui",
+        "Aprašykite problemą su savo batais",
+        "Nurodykite, kuri batų dalis yra paveikta",
+        'Spustelėkite "Analizuoti Batus", kad gautumėte asmenines priežiūros rekomendacijas',
+      ],
       faq: "Dažnai Užduodami Klausimai",
+      faqItems: [
+        {
+          question: "Kokius batų tipus galiu analizuoti?",
+          answer:
+            "Mūsų AI gali atpažinti ir pateikti rekomendacijas daugumai avalynės tipų, įskaitant sportinius batelius, klasikinius batus, aulinius ir sandalus.",
+        },
+        {
+          question: "Koks yra atpažinimo tikslumas?",
+          answer:
+            "Tikslumas priklauso nuo vaizdo kokybės ir aiškumo. Geriausiems rezultatams naudokite gerai apšviestą nuotrauką, rodančią visą batą.",
+        },
+      ],
       shareResults: "Dalintis Rezultatais",
       recommendedProducts: "Rekomenduojami Produktai",
       imageQualityIssue: "Vaizdo Kokybės Problema",
-      retakePhoto: "Įkelti Naują Nuotrauką",
+      uploadNewPhoto: "Įkelti Naują Nuotrauką",
+      tryTextOnly: "Bandyti tik su tekstu",
+      tooltips: {
+        brand:
+          "Prekės ženklo ir modelio nurodymas gali pagerinti atpažinimo tikslumą",
+        problem: "Aprašykite, kas negerai su jūsų batais",
+        affectedPart: "Nurodykite, kuri batų dalis yra paveikta",
+      },
+      footer: "© 2024 AI Batų Asistentas. Visos teisės saugomos.",
+      viewProduct: "Peržiūrėti Produktą",
+      noProducts: "Nėra rekomenduojamų produktų.",
+      needImageOrBrand:
+        "Pateikite nuotrauką arba prekės ženklo/modelio informaciją",
     },
   };
 
   // Initialize language
+  // Update the updateLanguage function to handle all translated elements
   function updateLanguage(lang) {
     currentLanguage = lang;
     const text = translations[lang] || translations.en;
@@ -138,6 +241,9 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update UI text
     document.querySelector("h1").textContent = text.title;
     uploadText.textContent = text.uploadText;
+    browseBtn.textContent = text.browseBtn;
+
+    // Update labels and placeholders
     document.querySelector('label[for="shoeBrand"] span').textContent =
       text.brandLabel;
     document.getElementById("shoeBrand").placeholder = text.brandPlaceholder;
@@ -149,11 +255,69 @@ document.addEventListener("DOMContentLoaded", () => {
       text.affectedPartLabel;
     document.getElementById("affectedPart").placeholder =
       text.affectedPartPlaceholder;
+
+    // Update buttons
     submitButton.innerHTML = `<i class="fas fa-magic"></i> ${text.analyzeButton}`;
     helpToggleBtn.innerHTML = `<i class="fas fa-question-circle"></i> ${text.needHelp}`;
     document.querySelector(".result-header h2").textContent = text.resultsTitle;
 
-    // Update other text elements as needed
+    // Update tooltips
+    document
+      .querySelector('label[for="shoeBrand"] .tooltip-icon')
+      .setAttribute("data-tooltip", text.tooltips.brand);
+    document
+      .querySelector('label[for="problemDescription"] .tooltip-icon')
+      .setAttribute("data-tooltip", text.tooltips.problem);
+    document
+      .querySelector('label[for="affectedPart"] .tooltip-icon')
+      .setAttribute("data-tooltip", text.tooltips.affectedPart);
+
+    // Update footer
+    document.querySelector("footer p").textContent = text.footer;
+
+    // Update help content
+    document.querySelector(".help-content h3:first-child").textContent =
+      text.howToUse;
+    const helpSteps = document.querySelector(".help-content ol");
+    helpSteps.innerHTML = "";
+    text.howToUseSteps.forEach((step) => {
+      const li = document.createElement("li");
+      li.textContent = step;
+      helpSteps.appendChild(li);
+    });
+
+    document.querySelector(".help-content h3:nth-child(3)").textContent =
+      text.faq;
+    const faqContainer = document.querySelector(".help-content");
+    const faqItems = faqContainer.querySelectorAll(".faq-item");
+
+    // Remove existing FAQ items
+    faqItems.forEach((item) => item.remove());
+
+    // Add new translated FAQ items
+    text.faqItems.forEach((faqItem) => {
+      const faqDiv = document.createElement("div");
+      faqDiv.className = "faq-item";
+
+      const question = document.createElement("h4");
+      question.textContent = faqItem.question;
+
+      const answer = document.createElement("p");
+      answer.textContent = faqItem.answer;
+
+      faqDiv.appendChild(question);
+      faqDiv.appendChild(answer);
+      faqContainer.appendChild(faqDiv);
+    });
+
+    // Update modals
+    document.querySelector("#qualityAlertModal h3").textContent =
+      text.imageQualityIssue;
+    retakePhotoBtn.textContent = text.uploadNewPhoto;
+
+    // Update product recommendations
+    document.querySelector("#productsModal h3").textContent =
+      text.recommendedProducts;
   }
 
   // Event Listeners
@@ -208,14 +372,9 @@ document.addEventListener("DOMContentLoaded", () => {
     updateImageTransform();
   });
 
-  // Replace zoom buttons with crop functionality
-  const cropBtn = document.getElementById("cropBtn");
-  cropBtn.addEventListener("click", () => {
-    if (!isCropping) {
-      startCropping();
-    } else {
-      finishCropping();
-    }
+  // Replace crop button with retake photo button
+  retakePhotoBtn.addEventListener("click", () => {
+    resetUploadSection();
   });
 
   resetBtn.addEventListener("click", () => {
@@ -306,6 +465,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const reader = new FileReader();
       reader.onload = (e) => {
+        // Save original image for reset
+        originalImageSrc = e.target.result;
+
         // Show image preview
         previewImage.src = e.target.result;
         dropZone.style.display = "none";
@@ -314,8 +476,9 @@ document.addEventListener("DOMContentLoaded", () => {
         // Enable submit button
         submitButton.disabled = false;
 
-        // Check image quality
-        checkImageQuality(e.target.result);
+        // Reset rotation
+        currentRotation = 0;
+        updateImageTransform();
       };
       reader.readAsDataURL(file);
     }
@@ -398,7 +561,49 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Show quality alert
   function showQualityAlert(message) {
-    qualityIssueMessage.textContent = message;
+    const text = translations[currentLanguage];
+
+    // Create a more user-friendly message with additional tips
+    let enhancedMessage = message;
+
+    // Add tips for common issues
+    if (message.toLowerCase().includes("blurry")) {
+      enhancedMessage = `${message} Try taking a photo with better lighting and make sure your camera lens is clean.`;
+    } else if (message.toLowerCase().includes("dark")) {
+      enhancedMessage = `${message} Try taking a photo in a well-lit area or use additional lighting.`;
+    } else if (message.toLowerCase().includes("resolution")) {
+      enhancedMessage = `${message} Try taking a photo closer to the shoe or use a camera with higher resolution.`;
+    }
+
+    // Add text-only option suggestion
+    enhancedMessage += `\n\nIf you continue to experience issues, you can try analyzing your shoe using just the brand and model information.`;
+
+    // Update the modal content
+    qualityIssueMessage.textContent = enhancedMessage;
+
+    // Add a "Try with text only" button if not already present
+    const tryTextOnlyBtn = document.getElementById("tryTextOnlyBtn");
+    if (!tryTextOnlyBtn) {
+      const btn = document.createElement("button");
+      btn.id = "tryTextOnlyBtn";
+      btn.className = "button secondary-btn";
+      btn.textContent = text.tryTextOnly;
+      btn.addEventListener("click", () => {
+        qualityAlertModal.style.display = "none";
+        // Focus on the brand/model input field
+        document.getElementById("shoeBrand").focus();
+        // Clear the image
+        resetUploadSection();
+        // Add a visual indicator that we're in text-only mode
+        document
+          .querySelector(".input-section")
+          .classList.add("text-only-mode");
+      });
+
+      // Insert the button before the retake photo button
+      retakePhotoBtn.parentNode.insertBefore(btn, retakePhotoBtn);
+    }
+
     qualityAlertModal.style.display = "flex";
   }
 
@@ -420,8 +625,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const affectedPart = document.getElementById("affectedPart").value;
     const shoeBrand = document.getElementById("shoeBrand").value;
 
-    if (!fileInput.files[0]) {
-      alert("Please select an image first!");
+    // Check if we have either an image or brand information
+    const hasImage = fileInput.files && fileInput.files[0];
+    const hasBrandInfo = shoeBrand && shoeBrand.trim().length > 0;
+
+    if (!hasImage && !hasBrandInfo) {
+      alert(
+        translations[currentLanguage].needImageOrBrand ||
+          "Please provide either an image or brand/model information"
+      );
       return;
     }
 
@@ -429,15 +641,26 @@ document.addEventListener("DOMContentLoaded", () => {
     progressSection.style.display = "block";
     resultSection.style.display = "none";
 
-    // Update progress bar and status message
-    updateProgress(0, translations[currentLanguage].processingImage);
+    const text = translations[currentLanguage];
 
     try {
-      // Convert image to base64
-      const base64Image = await convertImageToBase64(fileInput.files[0]);
+      // Stage 1: Processing
+      updateProgress(0, text.processingImage);
 
-      // Update progress
-      updateProgress(25, translations[currentLanguage].analyzingShoe);
+      // If we have an image, convert it to base64
+      let base64Image = null;
+      if (hasImage) {
+        // Wait for 1.5 seconds to simulate processing
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        base64Image = await convertImageToBase64(fileInput.files[0]);
+      } else {
+        // Shorter wait for text-only mode
+        await new Promise((resolve) => setTimeout(resolve, 800));
+      }
+
+      // Stage 2: Analyzing
+      updateProgress(25, text.analyzingShoe);
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Backend URL
       const backendURL =
@@ -458,9 +681,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }),
       });
 
-      // Update progress
-      updateProgress(75, translations[currentLanguage].gettingRecommendations);
-
       if (!response.ok) {
         throw new Error(`Server responded with status: ${response.status}`);
       }
@@ -475,23 +695,29 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Update progress
-      updateProgress(90, translations[currentLanguage].finalizing);
+      // Stage 3: Getting recommendations
+      updateProgress(50, text.gettingRecommendations);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Fetch product recommendations
       await fetchProductRecommendations(data);
+
+      // Stage 4: Finalizing
+      updateProgress(75, text.finalizing);
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Display results
       displayResults(data);
 
       // Complete progress
-      updateProgress(100, "Complete!");
+      updateProgress(100, text.analysisComplete);
+
+      // Keep the progress visible for a moment before showing results
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
       // Hide progress section and show results
-      setTimeout(() => {
-        progressSection.style.display = "none";
-        resultSection.style.display = "block";
-      }, 500);
+      progressSection.style.display = "none";
+      resultSection.style.display = "block";
     } catch (error) {
       console.error("Error:", error);
       progressSection.style.display = "none";
@@ -501,16 +727,25 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update progress bar and status message
   function updateProgress(percent, message) {
+    // Calculate which stage we're in
+    const stageIndex = Math.floor(percent / 25);
+    const stages = document.querySelectorAll(".progress-stage");
+
+    // Update progress bar width with a smoother animation
     progressBar.style.width = `${percent}%`;
+
+    // Update status message
     statusMessage.textContent = message;
 
-    // Update progress stages
-    const stages = document.querySelectorAll(".progress-stage");
-    stages.forEach((stage) => {
+    // Update active stages with a delay for each stage
+    stages.forEach((stage, index) => {
       stage.classList.remove("active");
-      const stageValue = Number.parseInt(stage.getAttribute("data-stage"));
-      if (percent >= stageValue * 25) {
-        stage.classList.add("active");
+
+      if (index <= stageIndex) {
+        // Add a delay for each stage to create a sequential effect
+        setTimeout(() => {
+          stage.classList.add("active");
+        }, index * 500); // 500ms delay between each stage activation
       }
     });
   }
@@ -560,24 +795,182 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fetch product recommendations
   async function fetchProductRecommendations(data) {
     try {
-      // Use the in-memory products instead of fetching from a file
-      if (window.sampleProducts) {
-        products = window.sampleProducts;
+      // Use the product data from products.js
+      if (window.productData) {
+        // Extract keywords from the shoe details
+        const keywords = extractKeywords(data);
+
+        // Score and filter products
+        products = scoreAndFilterProducts(window.productData, keywords);
+
+        console.log(`Found ${products.length} relevant products`);
         return;
       }
 
-      // Fallback to fetch if needed
-      const response = await fetch(window.productsJsonUrl || "products.json");
-      if (response.ok) {
-        products = await response.json();
-      } else {
-        console.error("Failed to load product recommendations");
-        products = [];
-      }
+      // Fallback to sample products if product data is not available
+      console.error("Product data not available");
+      products = getSampleProducts();
     } catch (error) {
       console.error("Error fetching product recommendations:", error);
-      products = [];
+      products = getSampleProducts();
     }
+  }
+
+  // Function to extract keywords from shoe details
+  function extractKeywords(shoeDetails) {
+    const keywords = [];
+
+    // Add brand and model if available
+    if (shoeDetails.brandAndModel) {
+      const brandModelWords = shoeDetails.brandAndModel
+        .toLowerCase()
+        .split(" ");
+      keywords.push(...brandModelWords);
+    }
+
+    // Add materials if available
+    if (shoeDetails.materials) {
+      Object.values(shoeDetails.materials).forEach((material) => {
+        if (
+          material &&
+          material.toLowerCase() !== "unknown" &&
+          material.toLowerCase() !== "unspecified"
+        ) {
+          keywords.push(material.toLowerCase());
+        }
+      });
+    }
+
+    // Add affected parts and problems if available
+    if (shoeDetails.cleaningRecommendations) {
+      shoeDetails.cleaningRecommendations.forEach((rec) => {
+        if (rec.affectedPart) {
+          keywords.push(rec.affectedPart.toLowerCase());
+        }
+
+        // Add recommendations as keywords (they often contain material types)
+        rec.recommendations.forEach((recommendation) => {
+          const words = recommendation.toLowerCase().split(" ");
+          // Filter out common words
+          const filteredWords = words.filter(
+            (word) =>
+              word.length > 3 &&
+              ![
+                "with",
+                "and",
+                "the",
+                "for",
+                "your",
+                "that",
+                "this",
+                "then",
+                "use",
+              ].includes(word)
+          );
+          keywords.push(...filteredWords);
+        });
+      });
+    }
+
+    // Add general care tips as keywords
+    if (shoeDetails.generalCare) {
+      shoeDetails.generalCare.forEach((tip) => {
+        const words = tip.toLowerCase().split(" ");
+        const filteredWords = words.filter(
+          (word) =>
+            word.length > 3 &&
+            ![
+              "with",
+              "and",
+              "the",
+              "for",
+              "your",
+              "that",
+              "this",
+              "then",
+              "use",
+            ].includes(word)
+        );
+        keywords.push(...filteredWords);
+      });
+    }
+
+    // Remove duplicates
+    return [...new Set(keywords)];
+  }
+
+  // Function to score and filter products based on keywords
+  function scoreAndFilterProducts(productData, keywords) {
+    // Score each product based on keyword matches
+    const scoredProducts = productData.map((product) => {
+      // Combine relevant product fields for matching
+      const productText =
+        `${product.title} ${product.tags} ${product.vendor}`.toLowerCase();
+
+      // Calculate match score
+      let score = 0;
+      keywords.forEach((keyword) => {
+        if (productText.includes(keyword)) {
+          // Increase score based on where the keyword is found
+          if (product.title.toLowerCase().includes(keyword)) {
+            score += 3; // Higher weight for title matches
+          } else if (
+            product.tags &&
+            product.tags.toLowerCase().includes(keyword)
+          ) {
+            score += 2; // Medium weight for tag matches
+          } else {
+            score += 1; // Lower weight for other matches
+          }
+        }
+      });
+
+      return { product, score };
+    });
+
+    // Sort by score (highest first) and take top 6
+    return scoredProducts
+      .filter((item) => item.score > 0) // Only include products with matches
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map((item) => ({
+        id: item.product.id,
+        title: item.product.title,
+        price: item.product.price,
+        image: item.product.image,
+        vendor: item.product.vendor,
+        url: `https://example.com/products/${item.product.id}`,
+      }));
+  }
+
+  // Function to get sample products as fallback
+  function getSampleProducts() {
+    return [
+      {
+        id: 1,
+        title: "Shoe Cleaner Kit",
+        price: "$19.99",
+        vendor: "Shoe Care Co.",
+        image: "https://via.placeholder.com/200x150?text=Shoe+Cleaner+Kit",
+        url: "https://example.com/products/shoe-cleaner-kit",
+      },
+      {
+        id: 2,
+        title: "Leather Conditioner",
+        price: "$12.99",
+        vendor: "Leather Care",
+        image: "https://via.placeholder.com/200x150?text=Leather+Conditioner",
+        url: "https://example.com/products/leather-conditioner",
+      },
+      {
+        id: 3,
+        title: "Suede Brush",
+        price: "$8.99",
+        vendor: "Shoe Care Co.",
+        image: "https://via.placeholder.com/200x150?text=Suede+Brush",
+        url: "https://example.com/products/suede-brush",
+      },
+    ];
   }
 
   // Display results
@@ -692,6 +1085,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Show product recommendations
   function showProductRecommendations() {
     const productsList = document.getElementById("productsList");
+    const text = translations[currentLanguage];
 
     // Clear previous products
     productsList.innerHTML = "";
@@ -703,28 +1097,28 @@ document.addEventListener("DOMContentLoaded", () => {
         productCard.className = "product-card";
 
         productCard.innerHTML = `
-        <img src="${product.image}" alt="${
+          <img src="${product.image}" alt="${
           product.title
         }" class="product-image" onerror="this.src='https://via.placeholder.com/200x150?text=No+Image'">
-        <div class="product-info">
-          <h4 class="product-title">${product.title}</h4>
-          ${
-            product.vendor
-              ? `<p class="product-vendor">${product.vendor}</p>`
-              : ""
-          }
-          <p class="product-price">${product.price}</p>
-          <button class="product-btn" onclick="window.open('${
-            product.url
-          }', '_blank')">View Product</button>
-        </div>
-      `;
+          <div class="product-info">
+            <h4 class="product-title">${product.title}</h4>
+            ${
+              product.vendor
+                ? `<p class="product-vendor">${product.vendor}</p>`
+                : ""
+            }
+            <p class="product-price">${product.price}</p>
+            <button class="product-btn" onclick="window.open('${
+              product.url
+            }', '_blank')">${text.viewProduct}</button>
+          </div>
+        `;
 
         productsList.appendChild(productCard);
       });
     } else {
       // No products available
-      productsList.innerHTML = "<p>No product recommendations available.</p>";
+      productsList.innerHTML = `<p>${text.noProducts}</p>`;
     }
 
     // Show modal
@@ -768,178 +1162,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Initialize
-
-  // Add these new functions for cropping
-  function startCropping() {
-    isCropping = true;
-    cropBtn.innerHTML = '<i class="fas fa-check"></i>';
-    cropBtn.title = "Apply Crop";
-
-    // Save original image for reset
-    if (!originalImageSrc) {
-      originalImageSrc = previewImage.src;
-    }
-
-    // Create crop overlay
-    const overlay = document.createElement("div");
-    overlay.id = "cropOverlay";
-    overlay.style.position = "absolute";
-    overlay.style.top = "0";
-    overlay.style.left = "0";
-    overlay.style.width = "100%";
-    overlay.style.height = "100%";
-    overlay.style.cursor = "crosshair";
-
-    // Add crop selection box
-    const selection = document.createElement("div");
-    selection.id = "cropSelection";
-    selection.style.position = "absolute";
-    selection.style.border = "2px dashed white";
-    selection.style.display = "none";
-
-    overlay.appendChild(selection);
-    document.querySelector(".image-preview-wrapper").style.position =
-      "relative";
-    document.querySelector(".image-preview-wrapper").appendChild(overlay);
-
-    // Add event listeners for crop selection
-    overlay.addEventListener("mousedown", startCropSelection);
-    overlay.addEventListener("mousemove", updateCropSelection);
-    overlay.addEventListener("mouseup", endCropSelection);
-
-    // Touch events for mobile
-    overlay.addEventListener("touchstart", handleTouchStart);
-    overlay.addEventListener("touchmove", handleTouchMove);
-    overlay.addEventListener("touchend", handleTouchEnd);
-  }
-
-  function startCropSelection(e) {
-    if (!isCropping) return;
-
-    const rect = e.target.getBoundingClientRect();
-    cropStartX = e.clientX - rect.left;
-    cropStartY = e.clientY - rect.top;
-
-    const selection = document.getElementById("cropSelection");
-    selection.style.left = cropStartX + "px";
-    selection.style.top = cropStartY + "px";
-    selection.style.width = "0";
-    selection.style.height = "0";
-    selection.style.display = "block";
-  }
-
-  function updateCropSelection(e) {
-    if (!isCropping || cropStartX === undefined) return;
-
-    const rect = e.target.getBoundingClientRect();
-    cropEndX = e.clientX - rect.left;
-    cropEndY = e.clientY - rect.top;
-
-    const selection = document.getElementById("cropSelection");
-    const left = Math.min(cropStartX, cropEndX);
-    const top = Math.min(cropStartY, cropEndY);
-    const width = Math.abs(cropEndX - cropStartX);
-    const height = Math.abs(cropEndY - cropStartY);
-
-    selection.style.left = left + "px";
-    selection.style.top = top + "px";
-    selection.style.width = width + "px";
-    selection.style.height = height + "px";
-  }
-
-  function endCropSelection() {
-    if (!isCropping || cropStartX === undefined) return;
-
-    // Selection is complete, but we don't apply it until the user clicks "Apply Crop"
-  }
-
-  function handleTouchStart(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const mouseEvent = new MouseEvent("mousedown", {
-      clientX: touch.clientX,
-      clientY: touch.clientY,
-    });
-    startCropSelection(mouseEvent);
-  }
-
-  function handleTouchMove(e) {
-    e.preventDefault();
-    const touch = e.touches[0];
-    const mouseEvent = new MouseEvent("mousemove", {
-      clientX: touch.clientX,
-      clientY: touch.clientY,
-    });
-    updateCropSelection(mouseEvent);
-  }
-
-  function handleTouchEnd(e) {
-    e.preventDefault();
-    endCropSelection();
-  }
-
-  function finishCropping() {
-    if (!cropStartX || !cropEndX) {
-      // No selection made
-      cancelCropping();
-      return;
-    }
-
-    // Apply the crop
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-
-    img.onload = () => {
-      // Calculate crop dimensions
-      const imgWidth = img.width;
-      const imgHeight = img.height;
-      const previewWidth = previewImage.width;
-      const previewHeight = previewImage.height;
-
-      // Scale factors
-      const scaleX = imgWidth / previewWidth;
-      const scaleY = imgHeight / previewHeight;
-
-      // Calculate crop area in original image coordinates
-      const left = Math.min(cropStartX, cropEndX) * scaleX;
-      const top = Math.min(cropStartY, cropEndY) * scaleY;
-      const width = Math.abs(cropEndX - cropStartX) * scaleX;
-      const height = Math.abs(cropEndY - cropStartY) * scaleY;
-
-      // Set canvas size to crop size
-      canvas.width = width;
-      canvas.height = height;
-
-      // Draw cropped image
-      ctx.drawImage(img, left, top, width, height, 0, 0, width, height);
-
-      // Update preview with cropped image
-      previewImage.src = canvas.toDataURL("image/jpeg");
-
-      // Clean up
-      cancelCropping();
-    };
-
-    img.src = previewImage.src;
-  }
-
-  function cancelCropping() {
-    isCropping = false;
-    cropBtn.innerHTML = '<i class="fas fa-crop-alt"></i>';
-    cropBtn.title = "Crop Image";
-
-    // Remove crop overlay
-    const overlay = document.getElementById("cropOverlay");
-    if (overlay) {
-      overlay.remove();
-    }
-
-    // Reset crop coordinates
-    cropStartX = cropStartY = cropEndX = cropEndY = undefined;
-  }
-
+  // Reset image editing
   function resetImageEditing() {
     // Reset rotation
     currentRotation = 0;
@@ -947,11 +1170,6 @@ document.addEventListener("DOMContentLoaded", () => {
     // Reset image to original
     if (originalImageSrc) {
       previewImage.src = originalImageSrc;
-    }
-
-    // Cancel cropping if active
-    if (isCropping) {
-      cancelCropping();
     }
 
     // Reset transform

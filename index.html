@@ -60,8 +60,12 @@
                 >
                   <i class="fas fa-redo"></i>
                 </button>
-                <button id="cropBtn" class="edit-btn" title="Crop Image">
-                  <i class="fas fa-crop-alt"></i>
+                <button
+                  id="retakePhotoBtn"
+                  class="edit-btn"
+                  title="Retake Photo"
+                >
+                  <i class="fas fa-camera"></i>
                 </button>
                 <button id="resetBtn" class="edit-btn" title="Reset">
                   <i class="fas fa-sync-alt"></i>
@@ -260,7 +264,7 @@
         <span class="close-btn">&times;</span>
         <h3>Image Quality Issue</h3>
         <p id="qualityIssueMessage">
-          Your photo appears to be too dark. For best results, please take a
+          Your photo appears to be too dark/bright/blurry. For best results, please retake the
           photo in better lighting.
         </p>
         <button id="retakePhotoBtn" class="button primary-btn">
@@ -272,5 +276,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="script.js"></script>
+    <!-- Add the products.js script -->
+    <script src="products.js"></script>
   </body>
 </html>
