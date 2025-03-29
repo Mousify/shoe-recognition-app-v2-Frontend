@@ -21,9 +21,8 @@
         <div class="language-selector">
           <select id="languageSelect">
             <option value="en">English</option>
-            <option value="es">Español</option>
-            <option value="fr">Français</option>
-            <option value="de">Deutsch</option>
+            <option value="ru">Русский</option>
+            <option value="lt">Lietuvių</option>
           </select>
         </div>
       </header>
@@ -61,11 +60,8 @@
                 >
                   <i class="fas fa-redo"></i>
                 </button>
-                <button id="zoomInBtn" class="edit-btn" title="Zoom In">
-                  <i class="fas fa-search-plus"></i>
-                </button>
-                <button id="zoomOutBtn" class="edit-btn" title="Zoom Out">
-                  <i class="fas fa-search-minus"></i>
+                <button id="cropBtn" class="edit-btn" title="Crop Image">
+                  <i class="fas fa-crop-alt"></i>
                 </button>
                 <button id="resetBtn" class="edit-btn" title="Reset">
                   <i class="fas fa-sync-alt"></i>
@@ -80,16 +76,16 @@
           <div class="input-group">
             <label for="shoeBrand" class="input-label">
               <i class="fas fa-tag"></i>
-              <span>Brand (optional)</span>
+              <span>Brand & Model (optional)</span>
               <i
                 class="fas fa-question-circle tooltip-icon"
-                data-tooltip="Providing the brand can improve recognition accuracy"
+                data-tooltip="Providing the brand and model can improve recognition accuracy"
               ></i>
             </label>
             <input
               type="text"
               id="shoeBrand"
-              placeholder="e.g., Nike, Adidas, Puma"
+              placeholder="e.g., Nike Air Jordan 1, Adidas Ultraboost"
             />
           </div>
 
@@ -142,6 +138,12 @@
               <div id="progressBar" class="progress-fill"></div>
             </div>
             <p id="statusMessage">Analyzing your shoe...</p>
+            <div class="progress-stages">
+              <div class="progress-stage" data-stage="0">Processing</div>
+              <div class="progress-stage" data-stage="1">Analyzing</div>
+              <div class="progress-stage" data-stage="2">Recommendations</div>
+              <div class="progress-stage" data-stage="3">Finalizing</div>
+            </div>
           </div>
         </section>
 

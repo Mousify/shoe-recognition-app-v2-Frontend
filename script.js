@@ -38,14 +38,17 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentScale = 1;
   let currentLanguage = "en";
   let products = [];
+  let isCropping = false;
+  let cropStartX, cropStartY, cropEndX, cropEndY;
+  let originalImageSrc = null;
 
   // Translations
   const translations = {
     en: {
       title: "AI Shoe Assistant",
       uploadText: "Drag & drop your shoe image or click to browse",
-      brandLabel: "Brand (optional)",
-      brandPlaceholder: "e.g., Nike, Adidas, Puma",
+      brandLabel: "Brand & Model (optional)",
+      brandPlaceholder: "e.g., Nike Air Jordan 1, Adidas Ultraboost",
       problemLabel: "Describe the problem",
       problemPlaceholder: "e.g., Coffee stain on the fabric, scuff marks",
       affectedPartLabel: "Affected part",
@@ -69,35 +72,62 @@ document.addEventListener("DOMContentLoaded", () => {
       imageQualityIssue: "Image Quality Issue",
       retakePhoto: "Upload New Photo",
     },
-    es: {
-      title: "Asistente de Calzado IA",
-      uploadText: "Arrastra y suelta tu imagen o haz clic para buscar",
-      brandLabel: "Marca (opcional)",
-      brandPlaceholder: "ej., Nike, Adidas, Puma",
-      problemLabel: "Describe el problema",
-      problemPlaceholder: "ej., Mancha de café en la tela, marcas de rozaduras",
-      affectedPartLabel: "Parte afectada",
-      affectedPartPlaceholder: "ej., Área del dedo del pie, Talón, Suela",
-      analyzeButton: "Analizar Calzado",
-      analyzing: "Analizando tu calzado...",
-      processingImage: "Procesando imagen...",
-      analyzingShoe: "Analizando detalles del calzado...",
-      gettingRecommendations: "Obteniendo recomendaciones...",
-      finalizing: "Finalizando resultados...",
-      resultsTitle: "Resultados del Análisis",
-      brandAndModel: "Marca y Modelo",
-      materials: "Materiales",
-      cleaningRecommendations: "Recomendaciones de Limpieza",
-      generalCare: "Cuidado General",
-      needHelp: "¿Necesitas Ayuda?",
-      howToUse: "Cómo Usar Esta Herramienta",
-      faq: "Preguntas Frecuentes",
-      shareResults: "Compartir Resultados",
-      recommendedProducts: "Productos Recomendados",
-      imageQualityIssue: "Problema de Calidad de Imagen",
-      retakePhoto: "Subir Nueva Foto",
+    ru: {
+      title: "ИИ Помощник по Обуви",
+      uploadText: "Перетащите изображение обуви или нажмите для выбора",
+      brandLabel: "Бренд и модель (необязательно)",
+      brandPlaceholder: "например, Nike Air Jordan 1, Adidas Ultraboost",
+      problemLabel: "Опишите проблему",
+      problemPlaceholder: "например, Пятно кофе на ткани, царапины",
+      affectedPartLabel: "Поврежденная часть",
+      affectedPartPlaceholder: "например, Носок, Пятка, Подошва",
+      analyzeButton: "Анализировать Обувь",
+      analyzing: "Анализ вашей обуви...",
+      processingImage: "Обработка изображения...",
+      analyzingShoe: "Анализ деталей обуви...",
+      gettingRecommendations: "Получение рекомендаций...",
+      finalizing: "Завершение результатов...",
+      resultsTitle: "Результаты Анализа",
+      brandAndModel: "Бренд и Модель",
+      materials: "Материалы",
+      cleaningRecommendations: "Рекомендации по Чистке",
+      generalCare: "Общий Уход",
+      needHelp: "Нужна Помощь?",
+      howToUse: "Как Использовать Этот Инструмент",
+      faq: "Часто Задаваемые Вопросы",
+      shareResults: "Поделиться Результатами",
+      recommendedProducts: "Рекомендуемые Продукты",
+      imageQualityIssue: "Проблема с Качеством Изображения",
+      retakePhoto: "Загрузить Новое Фото",
     },
-    // Add more languages as needed
+    lt: {
+      title: "AI Batų Asistentas",
+      uploadText: "Tempkite batų nuotrauką arba spustelėkite naršyti",
+      brandLabel: "Prekės ženklas ir modelis (neprivaloma)",
+      brandPlaceholder: "pvz., Nike Air Jordan 1, Adidas Ultraboost",
+      problemLabel: "Aprašykite problemą",
+      problemPlaceholder: "pvz., Kavos dėmė ant audinio, įbrėžimai",
+      affectedPartLabel: "Paveikta dalis",
+      affectedPartPlaceholder: "pvz., Pirštų sritis, Kulnas, Padas",
+      analyzeButton: "Analizuoti Batus",
+      analyzing: "Analizuojami jūsų batai...",
+      processingImage: "Apdorojamas vaizdas...",
+      analyzingShoe: "Analizuojamos batų detalės...",
+      gettingRecommendations: "Gaunamos rekomendacijos...",
+      finalizing: "Baigiami rezultatai...",
+      resultsTitle: "Analizės Rezultatai",
+      brandAndModel: "Prekės ženklas ir Modelis",
+      materials: "Medžiagos",
+      cleaningRecommendations: "Valymo Rekomendacijos",
+      generalCare: "Bendra Priežiūra",
+      needHelp: "Reikia Pagalbos?",
+      howToUse: "Kaip Naudotis Šiuo Įrankiu",
+      faq: "Dažnai Užduodami Klausimai",
+      shareResults: "Dalintis Rezultatais",
+      recommendedProducts: "Rekomenduojami Produktai",
+      imageQualityIssue: "Vaizdo Kokybės Problema",
+      retakePhoto: "Įkelti Naują Nuotrauką",
+    },
   };
 
   // Initialize language
@@ -178,22 +208,18 @@ document.addEventListener("DOMContentLoaded", () => {
     updateImageTransform();
   });
 
-  zoomInBtn.addEventListener("click", () => {
-    currentScale += 0.1;
-    updateImageTransform();
-  });
-
-  zoomOutBtn.addEventListener("click", () => {
-    if (currentScale > 0.5) {
-      currentScale -= 0.1;
-      updateImageTransform();
+  // Replace zoom buttons with crop functionality
+  const cropBtn = document.getElementById("cropBtn");
+  cropBtn.addEventListener("click", () => {
+    if (!isCropping) {
+      startCropping();
+    } else {
+      finishCropping();
     }
   });
 
   resetBtn.addEventListener("click", () => {
-    currentRotation = 0;
-    currentScale = 1;
-    updateImageTransform();
+    resetImageEditing();
   });
 
   // Submit button click
@@ -297,56 +323,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update image transform for editing
   function updateImageTransform() {
-    previewImage.style.transform = `rotate(${currentRotation}deg) scale(${currentScale})`;
+    previewImage.style.transform = `rotate(${currentRotation}deg)`;
   }
 
   // Check image quality
   function checkImageQuality(dataUrl) {
+    // We'll rely on the backend for image quality analysis
+    // This function now just displays the image preview
     const img = new Image();
     img.onload = () => {
-      const canvas = document.createElement("canvas");
-      const ctx = canvas.getContext("2d");
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
+      // Just set up the preview, no quality checks here
+      previewImage.src = dataUrl;
+      dropZone.style.display = "none";
+      imageEditorContainer.style.display = "block";
 
-      // Check image brightness
-      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-      const data = imageData.data;
-      let brightness = 0;
-
-      // Calculate average brightness
-      for (let i = 0; i < data.length; i += 4) {
-        brightness += 0.34 * data[i] + 0.5 * data[i + 1] + 0.16 * data[i + 2];
-      }
-
-      brightness = brightness / (data.length / 4) / 255;
-
-      // Check image resolution
-      const resolution = img.width * img.height;
-      const minResolution = 100000; // 100k pixels (e.g., 316x316)
-
-      // Check image blur
-      const blurScore = detectBlur(imageData);
-
-      // Show quality alert if issues detected
-      if (brightness < 0.3) {
-        showQualityAlert(
-          "Your photo appears to be too dark. For best results, please take a photo in better lighting."
-        );
-      } else if (brightness > 0.9) {
-        showQualityAlert(
-          "Your photo appears to be overexposed. For best results, please take a photo with less bright lighting."
-        );
-      } else if (resolution < minResolution) {
-        showQualityAlert(
-          "Your photo resolution is too low. For best results, please use a higher quality image."
-        );
-      } else if (blurScore > 0.5) {
-        showQualityAlert(
-          "Your photo appears to be blurry. For best results, please take a clearer photo."
-        );
-      }
+      // Enable submit button
+      submitButton.disabled = false;
     };
     img.src = dataUrl;
   }
@@ -475,6 +467,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const data = await response.json();
 
+      // Check if the response indicates an image quality issue
+      if (data.error === "image_quality") {
+        // Show quality alert
+        showQualityAlert(data.message);
+        progressSection.style.display = "none";
+        return;
+      }
+
       // Update progress
       updateProgress(90, translations[currentLanguage].finalizing);
 
@@ -503,6 +503,16 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateProgress(percent, message) {
     progressBar.style.width = `${percent}%`;
     statusMessage.textContent = message;
+
+    // Update progress stages
+    const stages = document.querySelectorAll(".progress-stage");
+    stages.forEach((stage) => {
+      stage.classList.remove("active");
+      const stageValue = Number.parseInt(stage.getAttribute("data-stage"));
+      if (percent >= stageValue * 25) {
+        stage.classList.add("active");
+      }
+    });
   }
 
   // Convert image to base64
@@ -550,9 +560,14 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fetch product recommendations
   async function fetchProductRecommendations(data) {
     try {
-      // In a real implementation, you would fetch from your product database
-      // For now, we'll simulate with sample data
-      const response = await fetch("products.json");
+      // Use the in-memory products instead of fetching from a file
+      if (window.sampleProducts) {
+        products = window.sampleProducts;
+        return;
+      }
+
+      // Fallback to fetch if needed
+      const response = await fetch(window.productsJsonUrl || "products.json");
       if (response.ok) {
         products = await response.json();
       } else {
@@ -681,20 +696,29 @@ document.addEventListener("DOMContentLoaded", () => {
     // Clear previous products
     productsList.innerHTML = "";
 
-    if (products.length > 0) {
+    if (products && products.length > 0) {
       // Display products
       products.forEach((product) => {
         const productCard = document.createElement("div");
         productCard.className = "product-card";
 
         productCard.innerHTML = `
-          <img src="${product.image}" alt="${product.title}" class="product-image">
-          <div class="product-info">
-            <h4 class="product-title">${product.title}</h4>
-            <p class="product-price">${product.price}</p>
-            <button class="product-btn">View Product</button>
-          </div>
-        `;
+        <img src="${product.image}" alt="${
+          product.title
+        }" class="product-image" onerror="this.src='https://via.placeholder.com/200x150?text=No+Image'">
+        <div class="product-info">
+          <h4 class="product-title">${product.title}</h4>
+          ${
+            product.vendor
+              ? `<p class="product-vendor">${product.vendor}</p>`
+              : ""
+          }
+          <p class="product-price">${product.price}</p>
+          <button class="product-btn" onclick="window.open('${
+            product.url
+          }', '_blank')">View Product</button>
+        </div>
+      `;
 
         productsList.appendChild(productCard);
       });
@@ -710,6 +734,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Generate PDF
   function generatePDF() {
     const { jsPDF } = window.jspdf;
+    const html2canvas = window.html2canvas;
 
     // Create new PDF document
     const doc = new jsPDF();
@@ -744,6 +769,195 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Initialize
+
+  // Add these new functions for cropping
+  function startCropping() {
+    isCropping = true;
+    cropBtn.innerHTML = '<i class="fas fa-check"></i>';
+    cropBtn.title = "Apply Crop";
+
+    // Save original image for reset
+    if (!originalImageSrc) {
+      originalImageSrc = previewImage.src;
+    }
+
+    // Create crop overlay
+    const overlay = document.createElement("div");
+    overlay.id = "cropOverlay";
+    overlay.style.position = "absolute";
+    overlay.style.top = "0";
+    overlay.style.left = "0";
+    overlay.style.width = "100%";
+    overlay.style.height = "100%";
+    overlay.style.cursor = "crosshair";
+
+    // Add crop selection box
+    const selection = document.createElement("div");
+    selection.id = "cropSelection";
+    selection.style.position = "absolute";
+    selection.style.border = "2px dashed white";
+    selection.style.display = "none";
+
+    overlay.appendChild(selection);
+    document.querySelector(".image-preview-wrapper").style.position =
+      "relative";
+    document.querySelector(".image-preview-wrapper").appendChild(overlay);
+
+    // Add event listeners for crop selection
+    overlay.addEventListener("mousedown", startCropSelection);
+    overlay.addEventListener("mousemove", updateCropSelection);
+    overlay.addEventListener("mouseup", endCropSelection);
+
+    // Touch events for mobile
+    overlay.addEventListener("touchstart", handleTouchStart);
+    overlay.addEventListener("touchmove", handleTouchMove);
+    overlay.addEventListener("touchend", handleTouchEnd);
+  }
+
+  function startCropSelection(e) {
+    if (!isCropping) return;
+
+    const rect = e.target.getBoundingClientRect();
+    cropStartX = e.clientX - rect.left;
+    cropStartY = e.clientY - rect.top;
+
+    const selection = document.getElementById("cropSelection");
+    selection.style.left = cropStartX + "px";
+    selection.style.top = cropStartY + "px";
+    selection.style.width = "0";
+    selection.style.height = "0";
+    selection.style.display = "block";
+  }
+
+  function updateCropSelection(e) {
+    if (!isCropping || cropStartX === undefined) return;
+
+    const rect = e.target.getBoundingClientRect();
+    cropEndX = e.clientX - rect.left;
+    cropEndY = e.clientY - rect.top;
+
+    const selection = document.getElementById("cropSelection");
+    const left = Math.min(cropStartX, cropEndX);
+    const top = Math.min(cropStartY, cropEndY);
+    const width = Math.abs(cropEndX - cropStartX);
+    const height = Math.abs(cropEndY - cropStartY);
+
+    selection.style.left = left + "px";
+    selection.style.top = top + "px";
+    selection.style.width = width + "px";
+    selection.style.height = height + "px";
+  }
+
+  function endCropSelection() {
+    if (!isCropping || cropStartX === undefined) return;
+
+    // Selection is complete, but we don't apply it until the user clicks "Apply Crop"
+  }
+
+  function handleTouchStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousedown", {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+    });
+    startCropSelection(mouseEvent);
+  }
+
+  function handleTouchMove(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent("mousemove", {
+      clientX: touch.clientX,
+      clientY: touch.clientY,
+    });
+    updateCropSelection(mouseEvent);
+  }
+
+  function handleTouchEnd(e) {
+    e.preventDefault();
+    endCropSelection();
+  }
+
+  function finishCropping() {
+    if (!cropStartX || !cropEndX) {
+      // No selection made
+      cancelCropping();
+      return;
+    }
+
+    // Apply the crop
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+
+    img.onload = () => {
+      // Calculate crop dimensions
+      const imgWidth = img.width;
+      const imgHeight = img.height;
+      const previewWidth = previewImage.width;
+      const previewHeight = previewImage.height;
+
+      // Scale factors
+      const scaleX = imgWidth / previewWidth;
+      const scaleY = imgHeight / previewHeight;
+
+      // Calculate crop area in original image coordinates
+      const left = Math.min(cropStartX, cropEndX) * scaleX;
+      const top = Math.min(cropStartY, cropEndY) * scaleY;
+      const width = Math.abs(cropEndX - cropStartX) * scaleX;
+      const height = Math.abs(cropEndY - cropStartY) * scaleY;
+
+      // Set canvas size to crop size
+      canvas.width = width;
+      canvas.height = height;
+
+      // Draw cropped image
+      ctx.drawImage(img, left, top, width, height, 0, 0, width, height);
+
+      // Update preview with cropped image
+      previewImage.src = canvas.toDataURL("image/jpeg");
+
+      // Clean up
+      cancelCropping();
+    };
+
+    img.src = previewImage.src;
+  }
+
+  function cancelCropping() {
+    isCropping = false;
+    cropBtn.innerHTML = '<i class="fas fa-crop-alt"></i>';
+    cropBtn.title = "Crop Image";
+
+    // Remove crop overlay
+    const overlay = document.getElementById("cropOverlay");
+    if (overlay) {
+      overlay.remove();
+    }
+
+    // Reset crop coordinates
+    cropStartX = cropStartY = cropEndX = cropEndY = undefined;
+  }
+
+  function resetImageEditing() {
+    // Reset rotation
+    currentRotation = 0;
+
+    // Reset image to original
+    if (originalImageSrc) {
+      previewImage.src = originalImageSrc;
+    }
+
+    // Cancel cropping if active
+    if (isCropping) {
+      cancelCropping();
+    }
+
+    // Reset transform
+    updateImageTransform();
+  }
+
   function init() {
     // Load initial language
     updateLanguage(languageSelect.value);
@@ -785,20 +999,16 @@ document.addEventListener("DOMContentLoaded", () => {
       },
     ];
 
-    // Create Blob and save as file
+    // Store in window object instead of downloading
+    window.sampleProducts = sampleProducts;
+
+    // Create a hidden products.json file in memory
     const blob = new Blob([JSON.stringify(sampleProducts)], {
       type: "application/json",
     });
-    const url = URL.createObjectURL(blob);
+    window.productsJsonUrl = URL.createObjectURL(blob);
 
-    // Create link to download file
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "products.json";
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
+    console.log("Sample products loaded in memory");
   }
 
   // Initialize the app
