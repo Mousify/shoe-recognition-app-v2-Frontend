@@ -383,23 +383,24 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   // Update UI based on selected analysis method
+  // Update the updateUIForMethod function to show all fields for "photo" method
   function updateUIForMethod(method) {
     const uploadSection = document.querySelector(".upload-section");
     const inputSection = document.querySelector(".input-section");
 
     switch (method) {
       case "photo":
-        // Show upload section, hide input fields except brand
+        // Show upload section and all input fields
         uploadSection.style.display = "block";
         inputSection.style.display = "grid";
 
-        // Hide problem and affected part fields
+        // Show all input fields (changed from hiding them)
         document.querySelector(
           'label[for="problemDescription"]'
-        ).parentNode.style.display = "none";
+        ).parentNode.style.display = "block";
         document.querySelector(
           'label[for="affectedPart"]'
-        ).parentNode.style.display = "none";
+        ).parentNode.style.display = "block";
 
         // Enable submit button only when image is uploaded
         submitButton.disabled =
@@ -1254,7 +1255,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Generate PDF
   function generatePDF() {
     const { jsPDF } = window.jspdf;
-
     // Create new PDF document
     const doc = new jsPDF();
 
@@ -1292,6 +1292,42 @@ document.addEventListener("DOMContentLoaded", () => {
     .querySelector('[data-method="photo-details"]')
     .classList.add("active");
   updateUIForMethod("photo-details");
+
+  // Add event listener for retake picture button
+  const retakePictureBtn = document.getElementById("retakePictureBtn");
+  retakePictureBtn.addEventListener("click", () => {
+    resetUploadSection();
+  });
+
+  // Add event listeners for tooltip icons on mobile
+  const tooltipIcons = document.querySelectorAll(".tooltip-icon");
+  tooltipIcons.forEach((icon) => {
+    icon.addEventListener("click", (e) => {
+      // Check if we're on a touch device
+      if (window.matchMedia("(hover: none)").matches) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Remove active class from all tooltips
+        tooltipIcons.forEach((i) => i.classList.remove("active"));
+
+        // Add active class to clicked tooltip
+        icon.classList.add("active");
+
+        // Hide tooltip after 3 seconds
+        setTimeout(() => {
+          icon.classList.remove("active");
+        }, 3000);
+      }
+    });
+  });
+
+  // Close tooltips when clicking elsewhere
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".tooltip-icon")) {
+      tooltipIcons.forEach((icon) => icon.classList.remove("active"));
+    }
+  });
 
   // Initialize the app
   updateLanguage(languageSelect.value);

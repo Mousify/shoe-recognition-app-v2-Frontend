@@ -321,38 +321,76 @@ main {
   position: relative;
 }
 
-.tooltip-icon:hover::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: var(--accent-color);
-  color: var(--text-color);
-  padding: 0.75rem;
-  border-radius: 4px;
-  font-size: 0.8rem;
-  font-family: "Jost", sans-serif; /* Match the site's font */
-  line-height: 1.4;
-  white-space: normal; /* Allow text wrapping */
-  max-width: 250px; /* Limit width */
-  width: max-content;
-  text-align: center;
-  z-index: 100;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+/* For desktop: show tooltip on hover */
+@media (hover: hover) {
+  .tooltip-icon:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-family: "Jost", sans-serif;
+    line-height: 1.4;
+    white-space: normal;
+    max-width: 250px;
+    width: max-content;
+    text-align: center;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .tooltip-icon:hover::before {
+    content: "";
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--accent-color) transparent transparent transparent;
+    z-index: 101;
+  }
 }
 
-/* Add a small arrow to the tooltip */
-.tooltip-icon:hover::before {
-  content: "";
-  position: absolute;
-  bottom: 90%;
-  left: 50%;
-  transform: translateX(-50%);
-  border-width: 6px;
-  border-style: solid;
-  border-color: var(--accent-color) transparent transparent transparent;
-  z-index: 101;
+/* For mobile: show tooltip on click */
+@media (hover: none) {
+  .tooltip-icon.active::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: var(--accent-color);
+    color: var(--text-color);
+    padding: 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-family: "Jost", sans-serif;
+    line-height: 1.4;
+    white-space: normal;
+    max-width: 250px;
+    width: max-content;
+    text-align: center;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  }
+
+  .tooltip-icon.active::before {
+    content: "";
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 6px;
+    border-style: solid;
+    border-color: var(--accent-color) transparent transparent transparent;
+    z-index: 101;
+  }
 }
 
 input[type="text"],
