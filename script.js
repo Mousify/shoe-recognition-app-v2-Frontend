@@ -21,11 +21,14 @@ document.addEventListener("DOMContentLoaded", () => {
   const qualityAlertModal = document.getElementById("qualityAlertModal");
   const qualityIssueMessage = document.getElementById("qualityIssueMessage");
   const retakePhotoBtn = document.getElementById("retakePhotoBtn");
+  const tryTextOnlyBtn = document.getElementById("tryTextOnlyBtn");
   const languageSelect = document.getElementById("languageSelect");
+  const methodCards = document.querySelectorAll(".method-card");
 
   // Image editor controls
   const rotateLeftBtn = document.getElementById("rotateLeftBtn");
   const rotateRightBtn = document.getElementById("rotateRightBtn");
+  const cropBtn = document.getElementById("cropBtn");
   const resetBtn = document.getElementById("resetBtn");
 
   // Close buttons for modals
@@ -36,10 +39,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentScale = 1;
   let currentLanguage = "en";
   let products = [];
-  const isCropping = false;
-  let cropStartX, cropStartY, cropEndX, cropEndY;
   let originalImageSrc = null;
-  let isTextOnlyMode = false;
+  let currentAnalysisMethod = "photo-details"; // Default method
 
   // Update the translations object to include all UI elements
   const translations = {
@@ -106,6 +107,13 @@ document.addEventListener("DOMContentLoaded", () => {
       needImageOrBrand:
         "Please provide either an image or brand/model information",
       textOnlyMode: "Text-only mode active",
+      chooseMethod: "Choose Analysis Method",
+      photoOnly: "Photo Only",
+      photoDetails: "Photo + Details",
+      textOnly: "Text Only (No Photo)",
+      cropImage: "Crop Image",
+      applyCrop: "Apply Crop",
+      cancelCrop: "Cancel",
     },
     ru: {
       title: "ИИ Помощник по Обуви",
@@ -170,6 +178,13 @@ document.addEventListener("DOMContentLoaded", () => {
       needImageOrBrand:
         "Пожалуйста, предоставьте изображение или информацию о бренде/модели",
       textOnlyMode: "Активен режим только текста",
+      chooseMethod: "Выберите Метод Анализа",
+      photoOnly: "Только Фото",
+      photoDetails: "Фото + Детали",
+      textOnly: "Только Текст (Без Фото)",
+      cropImage: "Обрезать Изображение",
+      applyCrop: "Применить Обрезку",
+      cancelCrop: "Отмена",
     },
     lt: {
       title: "AI Batų Asistentas",
@@ -235,11 +250,17 @@ document.addEventListener("DOMContentLoaded", () => {
       needImageOrBrand:
         "Pateikite nuotrauką arba prekės ženklo/modelio informaciją",
       textOnlyMode: "Aktyvus tik teksto režimas",
+      chooseMethod: "Pasirinkite Analizės Metodą",
+      photoOnly: "Tik Nuotrauka",
+      photoDetails: "Nuotrauka + Detalės",
+      textOnly: "Tik Tekstas (Be Nuotraukos)",
+      cropImage: "Apkirpti Nuotrauką",
+      applyCrop: "Taikyti Apkirpimą",
+      cancelCrop: "Atšaukti",
     },
   };
 
   // Initialize language
-  // Update the updateLanguage function to handle all translated elements
   function updateLanguage(lang) {
     currentLanguage = lang;
     const text = translations[lang] || translations.en;
@@ -248,6 +269,16 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("h1").textContent = text.title;
     uploadText.textContent = text.uploadText;
     browseBtn.textContent = text.browseBtn;
+
+    // Update analysis method section
+    document.querySelector(".analysis-method-section h2").textContent =
+      text.chooseMethod;
+    document.querySelector('[data-method="photo"] span').textContent =
+      text.photoOnly;
+    document.querySelector('[data-method="photo-details"] span').textContent =
+      text.photoDetails;
+    document.querySelector('[data-method="text"] span').textContent =
+      text.textOnly;
 
     // Update labels and placeholders
     document.querySelector('label[for="shoeBrand"] span').textContent =
@@ -320,23 +351,97 @@ document.addEventListener("DOMContentLoaded", () => {
     document.querySelector("#qualityAlertModal h3").textContent =
       text.imageQualityIssue;
     retakePhotoBtn.textContent = text.uploadNewPhoto;
+    if (tryTextOnlyBtn) tryTextOnlyBtn.textContent = text.tryTextOnly;
+
+    // Update crop modal
+    document.querySelector("#cropModal h3").textContent = text.cropImage;
+    document.getElementById("applyCropBtn").textContent = text.applyCrop;
+    document.getElementById("cancelCropBtn").textContent = text.cancelCrop;
 
     // Update product recommendations
     document.querySelector("#productsModal h3").textContent =
       text.recommendedProducts;
-
-    // Update text-only mode indicator if active
-    if (isTextOnlyMode) {
-      const textOnlyIndicator = document.querySelector(
-        ".text-only-mode-indicator"
-      );
-      if (textOnlyIndicator) {
-        textOnlyIndicator.textContent = text.textOnlyMode;
-      }
-    }
   }
 
   // Event Listeners
+
+  // Analysis method selection
+  methodCards.forEach((card) => {
+    card.addEventListener("click", () => {
+      // Remove active class from all cards
+      methodCards.forEach((c) => c.classList.remove("active"));
+
+      // Add active class to clicked card
+      card.classList.add("active");
+
+      // Update current method
+      currentAnalysisMethod = card.dataset.method;
+
+      // Update UI based on selected method
+      updateUIForMethod(currentAnalysisMethod);
+    });
+  });
+
+  // Update UI based on selected analysis method
+  function updateUIForMethod(method) {
+    const uploadSection = document.querySelector(".upload-section");
+    const inputSection = document.querySelector(".input-section");
+
+    switch (method) {
+      case "photo":
+        // Show upload section, hide input fields except brand
+        uploadSection.style.display = "block";
+        inputSection.style.display = "grid";
+
+        // Hide problem and affected part fields
+        document.querySelector(
+          'label[for="problemDescription"]'
+        ).parentNode.style.display = "none";
+        document.querySelector(
+          'label[for="affectedPart"]'
+        ).parentNode.style.display = "none";
+
+        // Enable submit button only when image is uploaded
+        submitButton.disabled =
+          !fileInput.files || fileInput.files.length === 0;
+        break;
+
+      case "photo-details":
+        // Show upload section and all input fields
+        uploadSection.style.display = "block";
+        inputSection.style.display = "grid";
+
+        // Show all input fields
+        document.querySelector(
+          'label[for="problemDescription"]'
+        ).parentNode.style.display = "block";
+        document.querySelector(
+          'label[for="affectedPart"]'
+        ).parentNode.style.display = "block";
+
+        // Enable submit button only when image is uploaded
+        submitButton.disabled =
+          !fileInput.files || fileInput.files.length === 0;
+        break;
+
+      case "text":
+        // Hide upload section, show all input fields
+        uploadSection.style.display = "none";
+        inputSection.style.display = "grid";
+
+        // Show all input fields
+        document.querySelector(
+          'label[for="problemDescription"]'
+        ).parentNode.style.display = "block";
+        document.querySelector(
+          'label[for="affectedPart"]'
+        ).parentNode.style.display = "block";
+
+        // Enable submit button (will be disabled if brand is empty in validation)
+        submitButton.disabled = false;
+        break;
+    }
+  }
 
   // Language selector
   languageSelect.addEventListener("change", (e) => {
@@ -388,20 +493,12 @@ document.addEventListener("DOMContentLoaded", () => {
     updateImageTransform();
   });
 
-  // Replace zoom buttons with crop functionality
-  const cropBtn = document.getElementById("cropBtn");
-  // Replace crop button with retake photo button
-  retakePhotoBtn.addEventListener("click", () => {
-    resetUploadSection();
-    qualityAlertModal.style.display = "none";
-  });
-
   resetBtn.addEventListener("click", () => {
     resetImageEditing();
   });
 
   // Submit button click
-  submitButton.addEventListener("click", analyzeShoe);
+  submitButton.addEventListener("click", validateAndAnalyze);
 
   // Help toggle
   helpToggleBtn.addEventListener("click", () => {
@@ -422,6 +519,18 @@ document.addEventListener("DOMContentLoaded", () => {
     qualityAlertModal.style.display = "none";
     resetUploadSection();
   });
+
+  // Try text only button
+  if (tryTextOnlyBtn) {
+    tryTextOnlyBtn.addEventListener("click", () => {
+      qualityAlertModal.style.display = "none";
+      // Switch to text-only mode
+      methodCards.forEach((c) => c.classList.remove("active"));
+      document.querySelector('[data-method="text"]').classList.add("active");
+      currentAnalysisMethod = "text";
+      updateUIForMethod("text");
+    });
+  }
 
   // Close modal buttons
   closeButtons.forEach((btn) => {
@@ -498,9 +607,6 @@ document.addEventListener("DOMContentLoaded", () => {
         // Reset rotation
         currentRotation = 0;
         updateImageTransform();
-
-        // Exit text-only mode if active
-        exitTextOnlyMode();
       };
       reader.readAsDataURL(file);
     }
@@ -521,136 +627,51 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
-  // Enter text-only mode
-  function enterTextOnlyMode() {
-    isTextOnlyMode = true;
-
-    // Clear any existing image
-    resetUploadSection();
-
-    // Add visual indicator for text-only mode
-    const inputSection = document.querySelector(".input-section");
-
-    // Remove existing indicator if present
-    const existingIndicator = document.querySelector(
-      ".text-only-mode-indicator"
-    );
-    if (existingIndicator) {
-      existingIndicator.remove();
-    }
-
-    // Add new indicator
-    const indicator = document.createElement("div");
-    indicator.className = "text-only-mode-indicator";
-    indicator.textContent = translations[currentLanguage].textOnlyMode;
-    indicator.style.textAlign = "center";
-    indicator.style.padding = "10px";
-    indicator.style.marginBottom = "15px";
-    indicator.style.color = "var(--secondary-color)";
-    indicator.style.fontStyle = "italic";
-    indicator.style.backgroundColor = "rgba(62, 52, 43, 0.5)";
-    indicator.style.borderRadius = "var(--border-radius)";
-
-    inputSection.insertBefore(indicator, inputSection.firstChild);
-
-    // Focus on brand input
-    document.getElementById("shoeBrand").focus();
-
-    // Enable submit button
-    submitButton.disabled = false;
-  }
-
-  // Exit text-only mode
-  function exitTextOnlyMode() {
-    isTextOnlyMode = false;
-
-    // Remove text-only mode indicator
-    const indicator = document.querySelector(".text-only-mode-indicator");
-    if (indicator) {
-      indicator.remove();
-    }
-  }
-
-  // Check image quality
-  function checkImageQuality(dataUrl) {
-    // We'll rely on the backend for image quality analysis
-    // This function now just displays the image preview
-    const img = new Image();
-    img.onload = () => {
-      // Just set up the preview, no quality checks here
-      previewImage.src = dataUrl;
-      dropZone.style.display = "none";
-      imageEditorContainer.style.display = "block";
-
-      // Enable submit button
-      submitButton.disabled = false;
-    };
-    img.src = dataUrl;
-  }
-
-  // Detect blur in image
-  function detectBlur(imageData) {
-    // Simple Laplacian filter for edge detection
-    // High edge values indicate sharp image, low values indicate blur
-    const data = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-    let edgeSum = 0;
-
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        const idx = (y * width + x) * 4;
-        const grayValue =
-          0.3 * data[idx] + 0.59 * data[idx + 1] + 0.11 * data[idx + 2];
-
-        // Get surrounding pixels
-        const idxTop = ((y - 1) * width + x) * 4;
-        const idxBottom = ((y + 1) * width + x) * 4;
-        const idxLeft = (y * width + (x - 1)) * 4;
-        const idxRight = (y * width + (x + 1)) * 4;
-
-        const grayTop =
-          0.3 * data[idxTop] +
-          0.59 * data[idxTop + 1] +
-          0.11 * data[idxTop + 2];
-        const grayBottom =
-          0.3 * data[idxBottom] +
-          0.59 * data[idxBottom + 1] +
-          0.11 * data[idxBottom + 2];
-        const grayLeft =
-          0.3 * data[idxLeft] +
-          0.59 * data[idxLeft + 1] +
-          0.11 * data[idxLeft + 2];
-        const grayRight =
-          0.3 * data[idxRight] +
-          0.59 * data[idxRight + 1] +
-          0.11 * data[idxRight + 2];
-
-        // Laplacian filter
-        const edge = Math.abs(
-          4 * grayValue - grayTop - grayBottom - grayLeft - grayRight
-        );
-        edgeSum += edge;
-      }
-    }
-
-    // Normalize edge sum
-    const normalizedEdgeSum = edgeSum / (width * height);
-
-    // Return blur score (inverse of edge detection)
-    return 1 - Math.min(normalizedEdgeSum / 20, 1);
-  }
-
   // Reset upload section
   function resetUploadSection() {
     fileInput.value = "";
     previewImage.src = "";
     dropZone.style.display = "block";
     imageEditorContainer.style.display = "none";
-    submitButton.disabled = !isTextOnlyMode; // Only disable if not in text-only mode
+    submitButton.disabled = currentAnalysisMethod !== "text";
     currentRotation = 0;
     currentScale = 1;
     originalImageSrc = null;
+  }
+
+  // Validate inputs and analyze shoe
+  function validateAndAnalyze() {
+    const shoeBrand = document.getElementById("shoeBrand").value;
+    const problemDescription =
+      document.getElementById("problemDescription").value;
+    const affectedPart = document.getElementById("affectedPart").value;
+
+    // Validation based on analysis method
+    switch (currentAnalysisMethod) {
+      case "photo":
+        if (!fileInput.files || fileInput.files.length === 0) {
+          alert("Please upload an image of your shoe");
+          return;
+        }
+        break;
+
+      case "photo-details":
+        if (!fileInput.files || fileInput.files.length === 0) {
+          alert("Please upload an image of your shoe");
+          return;
+        }
+        break;
+
+      case "text":
+        if (!shoeBrand || shoeBrand.trim() === "") {
+          alert("Please enter the brand and model of your shoe");
+          return;
+        }
+        break;
+    }
+
+    // Proceed with analysis
+    analyzeShoe();
   }
 
   // Show quality alert with improved messaging
@@ -675,41 +696,35 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update the modal content
     qualityIssueMessage.textContent = enhancedMessage;
 
-    // Add a "Try with text only" button if not already present
-    const tryTextOnlyBtn = document.getElementById("tryTextOnlyBtn");
-    if (!tryTextOnlyBtn) {
-      const btn = document.createElement("button");
-      btn.id = "tryTextOnlyBtn";
-      btn.className = "button secondary-btn";
-      btn.textContent = text.tryTextOnly;
-      btn.addEventListener("click", () => {
-        qualityAlertModal.style.display = "none";
-        enterTextOnlyMode();
-      });
-
-      // Insert the button before the retake photo button
-      retakePhotoBtn.parentNode.insertBefore(btn, retakePhotoBtn);
-    }
-
+    // Show the modal
     qualityAlertModal.style.display = "flex";
   }
 
   // Analyze shoe
   async function analyzeShoe() {
+    const shoeBrand = document.getElementById("shoeBrand").value;
     const problemDescription =
       document.getElementById("problemDescription").value;
     const affectedPart = document.getElementById("affectedPart").value;
-    const shoeBrand = document.getElementById("shoeBrand").value;
 
-    // Check if we have either an image or brand information
-    const hasImage = fileInput.files && fileInput.files[0];
+    // Check if we have the required inputs based on analysis method
+    const hasImage = fileInput.files && fileInput.files.length > 0;
     const hasBrandInfo = shoeBrand && shoeBrand.trim().length > 0;
 
-    if (!hasImage && !hasBrandInfo) {
+    if (currentAnalysisMethod === "text" && !hasBrandInfo) {
       alert(
         translations[currentLanguage].needImageOrBrand ||
-          "Please provide either an image or brand/model information"
+          "Please provide brand/model information"
       );
+      return;
+    }
+
+    if (
+      (currentAnalysisMethod === "photo" ||
+        currentAnalysisMethod === "photo-details") &&
+      !hasImage
+    ) {
+      alert("Please upload an image of your shoe");
       return;
     }
 
@@ -1052,9 +1067,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const brandSection = document.createElement("div");
     brandSection.className = "result-item";
     brandSection.innerHTML = `
-    <h3>${text.brandAndModel}</h3>
-    <p>${data.brandAndModel || "Unknown"}</p>
-  `;
+      <h3>${text.brandAndModel}</h3>
+      <p>${data.brandAndModel || "Unknown"}</p>
+    `;
     resultContainer.appendChild(brandSection);
 
     // Create materials section
@@ -1075,11 +1090,11 @@ document.addEventListener("DOMContentLoaded", () => {
           const materialItem = document.createElement("div");
           materialItem.className = "material-item";
           materialItem.innerHTML = `
-          <div class="material-part">${
-            part.charAt(0).toUpperCase() + part.slice(1)
-          }</div>
-          <div>${material}</div>
-        `;
+            <div class="material-part">${
+              part.charAt(0).toUpperCase() + part.slice(1)
+            }</div>
+            <div>${material}</div>
+          `;
           materialsGrid.appendChild(materialItem);
         }
       }
@@ -1143,33 +1158,33 @@ document.addEventListener("DOMContentLoaded", () => {
       const productsSection = document.createElement("div");
       productsSection.className = "result-item";
       productsSection.innerHTML = `
-      <h3>${text.recommendedProducts}</h3>
-      <div class="products-preview">
-        <div class="products-grid">
-          ${products
-            .slice(0, 3)
-            .map(
-              (product) => `
-            <div class="product-card">
-              <img src="${product.image}" alt="${product.title}" class="product-image">
-              <div class="product-info">
-                <div class="product-title">${product.title}</div>
-                <div class="product-vendor">${product.vendor}</div>
-                <div class="product-price">${product.price}</div>
-                <button class="product-btn" data-product-id="${product.id}">${text.viewProduct}</button>
+        <h3>${text.recommendedProducts}</h3>
+        <div class="products-preview">
+          <div class="products-grid">
+            ${products
+              .slice(0, 3)
+              .map(
+                (product) => `
+              <div class="product-card">
+                <img src="${product.image}" alt="${product.title}" class="product-image">
+                <div class="product-info">
+                  <div class="product-title">${product.title}</div>
+                  <div class="product-vendor">${product.vendor}</div>
+                  <div class="product-price">${product.price}</div>
+                  <button class="product-btn" data-product-id="${product.id}">${text.viewProduct}</button>
+                </div>
               </div>
-            </div>
-          `
-            )
-            .join("")}
+            `
+              )
+              .join("")}
+          </div>
+          ${
+            products.length > 3
+              ? `<button id="viewAllProductsBtn" class="button secondary-btn">View All Products</button>`
+              : ""
+          }
         </div>
-        ${
-          products.length > 3
-            ? `<button id="viewAllProductsBtn" class="button secondary-btn">View All Products</button>`
-            : ""
-        }
-      </div>
-    `;
+      `;
       resultContainer.appendChild(productsSection);
 
       // Add event listener for view all products button
@@ -1206,14 +1221,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const productCard = document.createElement("div");
         productCard.className = "product-card";
         productCard.innerHTML = `
-        <img src="${product.image}" alt="${product.title}" class="product-image">
-        <div class="product-info">
-          <div class="product-title">${product.title}</div>
-          <div class="product-vendor">${product.vendor}</div>
-          <div class="product-price">${product.price}</div>
-          <button class="product-btn" data-product-url="${product.url}">${text.viewProduct}</button>
-        </div>
-      `;
+          <img src="${product.image}" alt="${product.title}" class="product-image">
+          <div class="product-info">
+            <div class="product-title">${product.title}</div>
+            <div class="product-vendor">${product.vendor}</div>
+            <div class="product-price">${product.price}</div>
+            <button class="product-btn" data-product-url="${product.url}">${text.viewProduct}</button>
+          </div>
+        `;
         productsList.appendChild(productCard);
       });
 
@@ -1271,6 +1286,12 @@ document.addEventListener("DOMContentLoaded", () => {
       doc.save("shoe-analysis.pdf");
     });
   }
+
+  // Set default analysis method
+  document
+    .querySelector('[data-method="photo-details"]')
+    .classList.add("active");
+  updateUIForMethod("photo-details");
 
   // Initialize the app
   updateLanguage(languageSelect.value);

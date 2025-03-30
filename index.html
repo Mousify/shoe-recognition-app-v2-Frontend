@@ -28,6 +28,31 @@
       </header>
 
       <main>
+        <!-- Analysis Method Selection -->
+        <section class="analysis-method-section">
+          <h2>Choose Analysis Method</h2>
+          <div class="analysis-methods">
+            <div class="method-card" data-method="photo">
+              <div class="method-content">
+                <i class="fas fa-camera"></i>
+                <span>Photo Only</span>
+              </div>
+            </div>
+            <div class="method-card" data-method="photo-details">
+              <div class="method-content">
+                <i class="fas fa-camera-plus"></i>
+                <span>Photo + Details</span>
+              </div>
+            </div>
+            <div class="method-card" data-method="text">
+              <div class="method-content">
+                <i class="fas fa-font"></i>
+                <span>Text Only (No Photo)</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
         <!-- Upload Section -->
         <section class="upload-section">
           <div class="upload-container" id="dropZone">
@@ -60,12 +85,8 @@
                 >
                   <i class="fas fa-redo"></i>
                 </button>
-                <button
-                  id="retakePhotoBtn"
-                  class="edit-btn"
-                  title="Retake Photo"
-                >
-                  <i class="fas fa-camera"></i>
+                <button id="cropBtn" class="edit-btn" title="Crop Image">
+                  <i class="fas fa-crop-alt"></i>
                 </button>
                 <button id="resetBtn" class="edit-btn" title="Reset">
                   <i class="fas fa-sync-alt"></i>
@@ -270,6 +291,28 @@
         <button id="retakePhotoBtn" class="button primary-btn">
           Upload New Photo
         </button>
+        <button id="tryTextOnlyBtn" class="button secondary-btn">
+          Try with text only
+        </button>
+      </div>
+    </div>
+
+    <!-- Crop Modal -->
+    <div id="cropModal" class="modal">
+      <div class="modal-content crop-modal">
+        <span class="close-btn">&times;</span>
+        <h3>Crop Image</h3>
+        <div class="crop-container" id="cropContainer">
+          <!-- Crop content will be added dynamically -->
+        </div>
+        <div class="crop-controls">
+          <button id="applyCropBtn" class="button primary-btn">
+            Apply Crop
+          </button>
+          <button id="cancelCropBtn" class="button secondary-btn">
+            Cancel
+          </button>
+        </div>
       </div>
     </div>
 

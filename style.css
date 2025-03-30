@@ -149,6 +149,55 @@ main {
   z-index: 1;
 }
 
+/* Analysis Method Section */
+.analysis-method-section {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.analysis-method-section h2 {
+  margin-bottom: 1.5rem;
+  font-size: 1.5rem;
+}
+
+.analysis-methods {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.method-card {
+  flex: 1;
+  background-color: rgba(62, 52, 43, 0.5);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  padding: 1.5rem 1rem;
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+.method-card:hover {
+  background-color: rgba(62, 52, 43, 0.7);
+  transform: translateY(-3px);
+}
+
+.method-card.active {
+  border-color: var(--secondary-color);
+  background-color: rgba(62, 52, 43, 0.8);
+}
+
+.method-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.method-content i {
+  font-size: 1.5rem;
+  color: var(--secondary-color);
+}
+
 /* Upload Section */
 .upload-section {
   margin-bottom: 2rem;
@@ -384,7 +433,6 @@ textarea::placeholder {
   text-align: center;
 }
 
-/* Progress Bar Styles - Updated to fix animation issues */
 .progress-bar {
   height: 24px;
   background-color: rgba(255, 255, 255, 0.1);
@@ -410,9 +458,9 @@ textarea::placeholder {
   position: relative;
   transition: width 1.5s cubic-bezier(0.4, 0, 0.2, 1);
   background-size: 200% 100%;
+  animation: gradientShift 3s infinite linear;
 }
 
-/* Replace the waterEffect animation with a simpler gradient animation */
 @keyframes gradientShift {
   0% {
     background-position: 0% 0%;
@@ -420,16 +468,6 @@ textarea::placeholder {
   100% {
     background-position: 200% 0%;
   }
-}
-
-/* Apply the new animation */
-.progress-fill {
-  animation: gradientShift 3s infinite linear;
-}
-
-/* Remove the wave effect that was causing the square corner issue */
-.progress-fill::after {
-  content: none;
 }
 
 #statusMessage {
@@ -542,8 +580,8 @@ textarea::placeholder {
 }
 
 .result-section .result-item {
-  margin-bottom: 1rem;
-  padding-bottom: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -594,6 +632,82 @@ textarea::placeholder {
   font-weight: 500;
   margin-bottom: 0.25rem;
   color: var(--secondary-color);
+}
+
+/* Products Grid */
+.products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.products-preview {
+  margin-top: 1rem;
+}
+
+.product-card {
+  background-color: rgba(62, 52, 43, 0.8);
+  border-radius: 8px;
+  overflow: hidden;
+  transition: var(--transition);
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-bottom: 1rem;
+}
+
+.product-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+}
+
+.product-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+}
+
+.product-info {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+}
+
+.product-title {
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+  color: var(--text-color);
+  font-weight: 500;
+}
+
+.product-vendor {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  margin-bottom: 0.5rem;
+}
+
+.product-price {
+  color: var(--secondary-color);
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+}
+
+.product-btn {
+  background-color: var(--secondary-color);
+  color: var(--text-color);
+  border: none;
+  padding: 0.5rem;
+  border-radius: 4px;
+  width: 100%;
+  cursor: pointer;
+  transition: var(--transition);
+  margin-top: auto;
+}
+
+.product-btn:hover {
+  background-color: #968c84;
 }
 
 /* Help Section */
@@ -695,6 +809,11 @@ footer {
   overflow-y: auto;
 }
 
+.crop-modal {
+  max-width: 90%;
+  max-height: 90vh;
+}
+
 .close-btn {
   position: absolute;
   top: 1rem;
@@ -758,172 +877,7 @@ footer {
   margin-top: 1.5rem;
 }
 
-.product-card {
-  background-color: rgba(62, 52, 43, 0.8);
-  border-radius: 8px;
-  overflow: hidden;
-  transition: var(--transition);
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.product-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
-}
-
-.product-image {
-  width: 100%;
-  height: 150px;
-  object-fit: cover;
-}
-
-.product-info {
-  padding: 1rem;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
-}
-
-.product-title {
-  font-size: 1rem;
-  margin-bottom: 0.5rem;
-  color: var(--text-color);
-  font-weight: 500;
-}
-
-.product-vendor {
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-bottom: 0.5rem;
-}
-
-.product-price {
-  color: var(--secondary-color);
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
-
-.product-btn {
-  background-color: var(--secondary-color);
-  color: var(--text-color);
-  border: none;
-  padding: 0.5rem;
-  border-radius: 4px;
-  width: 100%;
-  cursor: pointer;
-  transition: var(--transition);
-  margin-top: auto;
-}
-
-.product-btn:hover {
-  background-color: #968c84;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-  .container {
-    padding: 1.5rem;
-  }
-
-  h1 {
-    font-size: 2rem;
-  }
-
-  .input-section {
-    grid-template-columns: 1fr;
-  }
-
-  .share-options {
-    grid-template-columns: 1fr;
-  }
-
-  .products-list {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 480px) {
-  .container {
-    padding: 1rem;
-  }
-
-  h1 {
-    font-size: 1.75rem;
-  }
-
-  .edit-controls {
-    flex-wrap: wrap;
-  }
-
-  .result-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 1rem;
-  }
-}
-
-/* Accessibility */
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  padding: 0;
-  margin: -1px;
-  overflow: hidden;
-  clip: rect(0, 0, 0, 0);
-  white-space: nowrap;
-  border-width: 0;
-}
-
-/* High Contrast Mode */
-.high-contrast {
-  --primary-color: #000000;
-  --secondary-color: #ffffff;
-  --accent-color: #000000;
-  --text-color: #ffffff;
-  --background-color: #000000;
-}
-
-/* Adjust responsive breakpoints */
-@media (max-width: 840px) {
-  .container {
-    max-width: 95%;
-    padding: 1.5rem;
-  }
-}
-
-/* Add a secondary button style */
-.secondary-btn {
-  background-color: var(--accent-color);
-  color: var(--text-color);
-  margin-right: 0.5rem;
-}
-
-.secondary-btn:hover:not(:disabled) {
-  background-color: #4a443c;
-  transform: translateY(-2px);
-}
-
-/* Add text-only mode indicator */
-.text-only-mode {
-  position: relative;
-}
-
-.text-only-mode::before {
-  content: "Text-only mode active";
-  position: absolute;
-  top: -30px;
-  left: 0;
-  right: 0;
-  text-align: center;
-  color: var(--secondary-color);
-  font-size: 0.9rem;
-  font-style: italic;
-}
-
-/* Text-only mode indicator styles */
+/* Text-only mode indicator */
 .text-only-mode-indicator {
   background-color: rgba(62, 52, 43, 0.5);
   color: var(--secondary-color);
@@ -934,7 +888,7 @@ footer {
   border-radius: var(--border-radius);
 }
 
-/* Improved cropping interface styles */
+/* Crop Container Styles */
 .crop-container {
   position: relative;
   max-width: 100%;
@@ -965,21 +919,25 @@ footer {
 .crop-handle-nw {
   top: -10px;
   left: -10px;
+  cursor: nwse-resize;
 }
 
 .crop-handle-ne {
   top: -10px;
   right: -10px;
+  cursor: nesw-resize;
 }
 
 .crop-handle-sw {
   bottom: -10px;
   left: -10px;
+  cursor: nesw-resize;
 }
 
 .crop-handle-se {
   bottom: -10px;
   right: -10px;
+  cursor: nwse-resize;
 }
 
 .crop-controls {
@@ -989,24 +947,85 @@ footer {
   margin-top: 15px;
 }
 
-.crop-btn {
+/* Secondary button style */
+.secondary-btn {
   background-color: var(--accent-color);
   color: var(--text-color);
-  border: none;
-  padding: 8px 15px;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: var(--transition);
+  margin-right: 0.5rem;
 }
 
-.crop-btn:hover {
-  background-color: var(--secondary-color);
+.secondary-btn:hover:not(:disabled) {
+  background-color: #4a443c;
+  transform: translateY(-2px);
 }
 
-.crop-btn.apply {
-  background-color: var(--secondary-color);
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 1.5rem;
+  }
+
+  h1 {
+    font-size: 2rem;
+  }
+
+  .input-section {
+    grid-template-columns: 1fr;
+  }
+
+  .share-options {
+    grid-template-columns: 1fr;
+  }
+
+  .products-list {
+    grid-template-columns: 1fr;
+  }
+
+  .analysis-methods {
+    flex-direction: column;
+  }
+
+  .progress-stages {
+    padding: 0 5px;
+  }
+
+  .progress-stage {
+    font-size: 0.7rem;
+  }
 }
 
-.crop-btn.cancel {
-  background-color: var(--accent-color);
+@media (max-width: 480px) {
+  .container {
+    padding: 1rem;
+  }
+
+  h1 {
+    font-size: 1.75rem;
+  }
+
+  .edit-controls {
+    flex-wrap: wrap;
+  }
+
+  .result-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .progress-container {
+    padding: 1rem;
+  }
+
+  .progress-stages {
+    margin-top: 2rem;
+  }
+
+  .progress-stage {
+    font-size: 0.65rem;
+  }
+
+  .progress-stage::before {
+    top: -25px;
+  }
 }

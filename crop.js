@@ -2,120 +2,111 @@
 document.addEventListener("DOMContentLoaded", () => {
   // DOM Elements
   const previewImage = document.getElementById("previewImage");
-  const imageEditorContainer = document.getElementById("imageEditorContainer");
-
-  // Add crop button to the edit controls
-  const editControls = document.querySelector(".edit-controls");
-  const cropBtn = document.createElement("button");
-  cropBtn.id = "cropBtn";
-  cropBtn.className = "edit-btn";
-  cropBtn.title = "Crop Image";
-  cropBtn.innerHTML = '<i class="fas fa-crop-alt"></i>';
-  editControls.appendChild(cropBtn);
+  const cropBtn = document.getElementById("cropBtn");
+  const cropModal = document.getElementById("cropModal");
+  const cropContainer = document.getElementById("cropContainer");
+  const applyCropBtn = document.getElementById("applyCropBtn");
+  const cancelCropBtn = document.getElementById("cancelCropBtn");
+  const closeBtn = cropModal.querySelector(".close-btn");
 
   // Crop state variables
   let isCropping = false;
   let cropStartX, cropStartY, cropWidth, cropHeight;
   let originalImageWidth, originalImageHeight;
-  let cropContainer, cropOverlay, cropHandles;
+  let cropOverlay, cropHandles, cropPreviewImage;
+  let originalImageSrc;
 
   // Add event listener for crop button
   cropBtn.addEventListener("click", startCropping);
+  applyCropBtn.addEventListener("click", applyCrop);
+  cancelCropBtn.addEventListener("click", cancelCrop);
+  closeBtn.addEventListener("click", cancelCrop);
 
   // Function to start cropping
   function startCropping() {
-    if (isCropping) return;
+    // Store original image source
+    originalImageSrc = previewImage.src;
 
-    isCropping = true;
+    // Show crop modal
+    cropModal.style.display = "flex";
 
-    // Store original image dimensions
-    originalImageWidth = previewImage.width;
-    originalImageHeight = previewImage.height;
+    // Clear previous crop container content
+    cropContainer.innerHTML = "";
 
-    // Create crop container
-    cropContainer = document.createElement("div");
-    cropContainer.className = "crop-container";
-    cropContainer.style.width = `${originalImageWidth}px`;
-    cropContainer.style.height = `${originalImageHeight}px`;
-
-    // Create crop overlay
-    cropOverlay = document.createElement("div");
-    cropOverlay.className = "crop-overlay";
-
-    // Set initial crop area (centered, 80% of image)
-    cropWidth = Math.round(originalImageWidth * 0.8);
-    cropHeight = Math.round(originalImageHeight * 0.8);
-    cropStartX = Math.round((originalImageWidth - cropWidth) / 2);
-    cropStartY = Math.round((originalImageHeight - cropHeight) / 2);
-
-    updateCropOverlay();
-
-    // Add crop handles
-    cropHandles = [];
-    const handlePositions = ["nw", "ne", "sw", "se"];
-
-    handlePositions.forEach((position) => {
-      const handle = document.createElement("div");
-      handle.className = `crop-handle crop-handle-${position}`;
-      handle.dataset.position = position;
-      cropOverlay.appendChild(handle);
-      cropHandles.push(handle);
-
-      // Add event listeners for handles
-      handle.addEventListener("mousedown", startResizing);
-      handle.addEventListener("touchstart", startResizing, { passive: false });
-    });
-
-    // Add crop overlay to container
-    cropContainer.appendChild(cropOverlay);
-
-    // Hide the original image
-    previewImage.style.display = "none";
-
-    // Add crop container to editor
-    imageEditorContainer
-      .querySelector(".image-preview-wrapper")
-      .appendChild(cropContainer);
-
-    // Create a clone of the image for the crop preview
-    const cropPreviewImage = document.createElement("img");
+    // Create crop preview image
+    cropPreviewImage = document.createElement("img");
     cropPreviewImage.src = previewImage.src;
     cropPreviewImage.id = "cropPreviewImage";
-    cropPreviewImage.style.width = "100%";
-    cropPreviewImage.style.height = "100%";
-    cropPreviewImage.style.objectFit = "cover";
-    cropContainer.insertBefore(cropPreviewImage, cropOverlay);
+    cropPreviewImage.style.maxWidth = "100%";
+    cropPreviewImage.style.maxHeight = "60vh";
+    cropPreviewImage.style.display = "block";
+    cropPreviewImage.style.margin = "0 auto";
 
-    // Add crop controls
-    const cropControls = document.createElement("div");
-    cropControls.className = "crop-controls";
+    // Add crop preview image to container
+    cropContainer.appendChild(cropPreviewImage);
 
-    const applyCropBtn = document.createElement("button");
-    applyCropBtn.className = "crop-btn apply";
-    applyCropBtn.textContent = "Apply Crop";
-    applyCropBtn.addEventListener("click", applyCrop);
+    // Wait for image to load to get dimensions
+    cropPreviewImage.onload = () => {
+      // Store original image dimensions
+      originalImageWidth = cropPreviewImage.width;
+      originalImageHeight = cropPreviewImage.height;
 
-    const cancelCropBtn = document.createElement("button");
-    cancelCropBtn.className = "crop-btn cancel";
-    cancelCropBtn.textContent = "Cancel";
-    cancelCropBtn.addEventListener("click", cancelCrop);
+      // Create crop overlay
+      cropOverlay = document.createElement("div");
+      cropOverlay.className = "crop-overlay";
 
-    cropControls.appendChild(applyCropBtn);
-    cropControls.appendChild(cancelCropBtn);
+      // Set initial crop area (centered, 80% of image)
+      cropWidth = Math.round(originalImageWidth * 0.8);
+      cropHeight = Math.round(originalImageHeight * 0.8);
+      cropStartX = Math.round((originalImageWidth - cropWidth) / 2);
+      cropStartY = Math.round((originalImageHeight - cropHeight) / 2);
 
-    imageEditorContainer
-      .querySelector(".image-preview-wrapper")
-      .appendChild(cropControls);
+      updateCropOverlay();
 
-    // Add event listeners for moving the crop area
-    cropOverlay.addEventListener("mousedown", startMoving);
-    cropOverlay.addEventListener("touchstart", startMoving, { passive: false });
+      // Add crop handles
+      cropHandles = [];
+      const handlePositions = ["nw", "ne", "sw", "se"];
+
+      handlePositions.forEach((position) => {
+        const handle = document.createElement("div");
+        handle.className = `crop-handle crop-handle-${position}`;
+        handle.dataset.position = position;
+        cropOverlay.appendChild(handle);
+        cropHandles.push(handle);
+
+        // Add event listeners for handles
+        handle.addEventListener("mousedown", startResizing);
+        handle.addEventListener("touchstart", startResizing, {
+          passive: false,
+        });
+      });
+
+      // Add crop overlay to container
+      cropContainer.appendChild(cropOverlay);
+
+      // Position crop overlay correctly
+      const rect = cropPreviewImage.getBoundingClientRect();
+      cropOverlay.style.position = "absolute";
+      cropOverlay.style.top = `${cropPreviewImage.offsetTop}px`;
+      cropOverlay.style.left = `${cropPreviewImage.offsetLeft}px`;
+
+      // Add event listeners for moving the crop area
+      cropOverlay.addEventListener("mousedown", startMoving);
+      cropOverlay.addEventListener("touchstart", startMoving, {
+        passive: false,
+      });
+
+      // Set cropping state
+      isCropping = true;
+    };
   }
 
   // Function to update crop overlay position and size
   function updateCropOverlay() {
-    cropOverlay.style.left = `${cropStartX}px`;
-    cropOverlay.style.top = `${cropStartY}px`;
+    if (!cropOverlay) return;
+
+    cropOverlay.style.left = `${cropPreviewImage.offsetLeft + cropStartX}px`;
+    cropOverlay.style.top = `${cropPreviewImage.offsetTop + cropStartY}px`;
     cropOverlay.style.width = `${cropWidth}px`;
     cropOverlay.style.height = `${cropHeight}px`;
   }
@@ -244,55 +235,55 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Function to apply the crop
   function applyCrop() {
-    // Create a canvas to crop the image
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
+    if (!isCropping) return;
 
-    // Set canvas dimensions to crop size
-    canvas.width = cropWidth;
-    canvas.height = cropHeight;
+    // Create a temporary image to get the natural dimensions
+    const tempImg = new Image();
+    tempImg.src = originalImageSrc;
 
-    // Get the crop preview image
-    const cropPreviewImage = document.getElementById("cropPreviewImage");
+    tempImg.onload = () => {
+      // Calculate the scaling factor between the displayed image and the natural image
+      const scaleX = tempImg.naturalWidth / originalImageWidth;
+      const scaleY = tempImg.naturalHeight / originalImageHeight;
 
-    // Draw the cropped portion of the image to the canvas
-    ctx.drawImage(
-      cropPreviewImage,
-      cropStartX,
-      cropStartY,
-      cropWidth,
-      cropHeight,
-      0,
-      0,
-      cropWidth,
-      cropHeight
-    );
+      // Create a canvas to crop the image
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
 
-    // Update the original preview image with the cropped image
-    previewImage.src = canvas.toDataURL("image/jpeg", 0.9);
+      // Set canvas dimensions to crop size
+      canvas.width = cropWidth * scaleX;
+      canvas.height = cropHeight * scaleY;
 
-    // Clean up crop interface
-    cleanupCropInterface();
+      // Draw the cropped portion of the image to the canvas
+      ctx.drawImage(
+        tempImg,
+        cropStartX * scaleX,
+        cropStartY * scaleY,
+        cropWidth * scaleX,
+        cropHeight * scaleY,
+        0,
+        0,
+        cropWidth * scaleX,
+        cropHeight * scaleY
+      );
 
-    // Show the updated image
-    previewImage.style.display = "block";
+      // Update the original preview image with the cropped image
+      previewImage.src = canvas.toDataURL("image/jpeg", 0.9);
+
+      // Hide crop modal
+      cropModal.style.display = "none";
+
+      // Reset cropping state
+      isCropping = false;
+    };
   }
 
   // Function to cancel cropping
   function cancelCrop() {
-    cleanupCropInterface();
-    previewImage.style.display = "block";
-  }
+    // Hide crop modal
+    cropModal.style.display = "none";
 
-  // Function to clean up crop interface
-  function cleanupCropInterface() {
+    // Reset cropping state
     isCropping = false;
-
-    // Remove crop container and controls
-    const cropContainer = document.querySelector(".crop-container");
-    const cropControls = document.querySelector(".crop-controls");
-
-    if (cropContainer) cropContainer.remove();
-    if (cropControls) cropControls.remove();
   }
 });
