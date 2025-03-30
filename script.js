@@ -387,6 +387,10 @@ document.addEventListener("DOMContentLoaded", () => {
   function updateUIForMethod(method) {
     const uploadSection = document.querySelector(".upload-section");
     const inputSection = document.querySelector(".input-section");
+    const brandField = document.getElementById("shoeBrand");
+    const brandInputGroup = document.querySelector(
+      'label[for="shoeBrand"]'
+    ).parentNode;
 
     switch (method) {
       case "photo":
@@ -394,13 +398,18 @@ document.addEventListener("DOMContentLoaded", () => {
         uploadSection.style.display = "block";
         inputSection.style.display = "grid";
 
-        // Show all input fields (changed from hiding them)
+        // Show all input fields except brand field
         document.querySelector(
           'label[for="problemDescription"]'
         ).parentNode.style.display = "block";
         document.querySelector(
           'label[for="affectedPart"]'
         ).parentNode.style.display = "block";
+
+        // Disable brand field in "photo" mode
+        brandField.disabled = true;
+        brandField.placeholder = "Brand field disabled in Photo Only mode";
+        brandInputGroup.style.opacity = "0.6";
 
         // Enable submit button only when image is uploaded
         submitButton.disabled =
@@ -412,13 +421,18 @@ document.addEventListener("DOMContentLoaded", () => {
         uploadSection.style.display = "block";
         inputSection.style.display = "grid";
 
-        // Show all input fields
+        // Show all input fields and enable brand field
         document.querySelector(
           'label[for="problemDescription"]'
         ).parentNode.style.display = "block";
         document.querySelector(
           'label[for="affectedPart"]'
         ).parentNode.style.display = "block";
+        brandField.disabled = false;
+        brandField.placeholder =
+          translations[currentLanguage].brandPlaceholder ||
+          "e.g., Nike Air Jordan 1, Adidas Ultraboost";
+        brandInputGroup.style.opacity = "1";
 
         // Enable submit button only when image is uploaded
         submitButton.disabled =
@@ -430,13 +444,18 @@ document.addEventListener("DOMContentLoaded", () => {
         uploadSection.style.display = "none";
         inputSection.style.display = "grid";
 
-        // Show all input fields
+        // Show all input fields and enable brand field
         document.querySelector(
           'label[for="problemDescription"]'
         ).parentNode.style.display = "block";
         document.querySelector(
           'label[for="affectedPart"]'
         ).parentNode.style.display = "block";
+        brandField.disabled = false;
+        brandField.placeholder =
+          translations[currentLanguage].brandPlaceholder ||
+          "e.g., Nike Air Jordan 1, Adidas Ultraboost";
+        brandInputGroup.style.opacity = "1";
 
         // Enable submit button (will be disabled if brand is empty in validation)
         submitButton.disabled = false;
@@ -736,23 +755,23 @@ document.addEventListener("DOMContentLoaded", () => {
     const text = translations[currentLanguage];
 
     try {
-      // Stage 1: Processing
+      // Stage 1: Processing - now faster
       updateProgress(0, text.processingImage);
 
       // If we have an image, convert it to base64
       let base64Image = null;
       if (hasImage) {
-        // Wait for 1.5 seconds to simulate processing
-        await new Promise((resolve) => setTimeout(resolve, 1500));
+        // Reduced wait for processing stage
+        await new Promise((resolve) => setTimeout(resolve, 1000));
         base64Image = await convertImageToBase64(fileInput.files[0]);
       } else {
         // Shorter wait for text-only mode
-        await new Promise((resolve) => setTimeout(resolve, 800));
+        await new Promise((resolve) => setTimeout(resolve, 500));
       }
 
-      // Stage 2: Analyzing
+      // Stage 2: Analyzing - reduced time
       updateProgress(25, text.analyzingShoe);
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Backend URL
       const backendURL =
@@ -787,16 +806,16 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      // Stage 3: Getting recommendations
+      // Stage 3: Getting recommendations - normal time
       updateProgress(50, text.gettingRecommendations);
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
       // Fetch product recommendations
       await fetchProductRecommendations(data);
 
-      // Stage 4: Finalizing
+      // Stage 4: Finalizing - extended time
       updateProgress(75, text.finalizing);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // Display results
       displayResults(data);

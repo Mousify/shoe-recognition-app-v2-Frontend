@@ -198,6 +198,19 @@ main {
   color: var(--secondary-color);
 }
 
+/* Add styling for the combined icon in the Photo + Details method card */
+.combined-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0.5rem;
+}
+
+.icon-plus {
+  font-size: 0.8rem;
+  margin: 0 4px;
+}
+
 /* Upload Section */
 .upload-section {
   margin-bottom: 2rem;
@@ -1023,12 +1036,25 @@ footer {
     flex-direction: column;
   }
 
+  /* Update progress bar stage dots alignment for mobile */
   .progress-stages {
     padding: 0 5px;
   }
 
   .progress-stage {
     font-size: 0.7rem;
+  }
+
+  .progress-stage::before {
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .progress-stages::before {
+    top: -14px;
+    left: 12.5%;
+    right: 12.5%;
   }
 }
 
@@ -1051,10 +1077,6 @@ footer {
     gap: 1rem;
   }
 
-  .progress-container {
-    padding: 1rem;
-  }
-
   .progress-stages {
     margin-top: 2rem;
   }
@@ -1064,6 +1086,10 @@ footer {
   }
 
   .progress-stage::before {
-    top: -25px;
+    top: -20px;
+  }
+
+  .progress-stages::before {
+    top: -14px;
   }
 }
