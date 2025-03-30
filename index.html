@@ -28,6 +28,25 @@
       </header>
 
       <main>
+        <!-- Analysis Options Section -->
+        <section id="analysisOptionsContainer" class="analysis-options-section">
+          <h3 id="analysisOptionsTitle">Choose Analysis Method</h3>
+          <div class="analysis-options">
+            <button id="photoOnlyBtn" class="analysis-option-btn">
+              <i class="fas fa-camera"></i>
+              <span>Photo Only</span>
+            </button>
+            <button id="combinedBtn" class="analysis-option-btn active">
+              <i class="fas fa-camera-retro"></i>
+              <span>Photo + Details</span>
+            </button>
+            <button id="textOnlyBtn" class="analysis-option-btn">
+              <i class="fas fa-keyboard"></i>
+              <span>Text Only (No Photo)</span>
+            </button>
+          </div>
+        </section>
+
         <!-- Upload Section -->
         <section class="upload-section">
           <div class="upload-container" id="dropZone">
@@ -60,15 +79,11 @@
                 >
                   <i class="fas fa-redo"></i>
                 </button>
-                <button
-                  id="retakePhotoBtn"
-                  class="edit-btn"
-                  title="Retake Photo"
-                >
-                  <i class="fas fa-camera"></i>
+                <button id="editPhotoBtn" class="edit-btn" title="Edit Photo">
+                  <i class="fas fa-edit"></i> Edit Photo
                 </button>
-                <button id="resetBtn" class="edit-btn" title="Reset">
-                  <i class="fas fa-sync-alt"></i>
+                <button id="retakeBtn" class="edit-btn" title="Retake Photo">
+                  <i class="fas fa-sync-alt"></i> Retake Picture
                 </button>
               </div>
             </div>
@@ -264,19 +279,48 @@
         <span class="close-btn">&times;</span>
         <h3>Image Quality Issue</h3>
         <p id="qualityIssueMessage">
-          Your photo appears to be too dark/bright/blurry. For best results, please retake the
+          Your photo appears to be too dark. For best results, please take a
           photo in better lighting.
         </p>
         <button id="retakePhotoBtn" class="button primary-btn">
-          Upload New Photo
+          <i class="fas fa-camera"></i> Upload New Photo
         </button>
+      </div>
+    </div>
+
+    <!-- Photo Editor Modal -->
+    <div id="photoEditorModal" class="modal">
+      <div class="modal-content photo-editor-modal">
+        <span class="close-btn">&times;</span>
+        <h3>Photo Editor</h3>
+        <div class="editor-container">
+          <div class="editor-image-container">
+            <img id="editorImage" alt="Editor Image" />
+          </div>
+          <div class="editor-controls">
+            <button id="editorRotateLeftBtn" class="editor-btn">
+              <i class="fas fa-undo"></i> <span>Rotate</span>
+            </button>
+            <button id="editorRotateRightBtn" class="editor-btn">
+              <i class="fas fa-redo"></i> <span>Rotate</span>
+            </button>
+            <button id="editorCropBtn" class="editor-btn">
+              <i class="fas fa-crop-alt"></i> <span>Crop</span>
+            </button>
+          </div>
+          <div class="editor-actions">
+            <button id="editorCancelBtn" class="button secondary-btn">
+              Cancel
+            </button>
+            <button id="editorDoneBtn" class="button primary-btn">Done</button>
+          </div>
+        </div>
       </div>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="script.js"></script>
-    <!-- Add the products.js script -->
     <script src="products.js"></script>
+    <script src="script.js"></script>
   </body>
 </html>

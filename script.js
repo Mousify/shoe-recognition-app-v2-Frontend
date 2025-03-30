@@ -22,11 +22,27 @@ document.addEventListener("DOMContentLoaded", () => {
   const qualityIssueMessage = document.getElementById("qualityIssueMessage");
   const retakePhotoBtn = document.getElementById("retakePhotoBtn");
   const languageSelect = document.getElementById("languageSelect");
+  const analysisOptionsContainer = document.getElementById(
+    "analysisOptionsContainer"
+  );
+  const photoOnlyBtn = document.getElementById("photoOnlyBtn");
+  const combinedBtn = document.getElementById("combinedBtn");
+  const textOnlyBtn = document.getElementById("textOnlyBtn");
 
   // Image editor controls
   const rotateLeftBtn = document.getElementById("rotateLeftBtn");
   const rotateRightBtn = document.getElementById("rotateRightBtn");
-  const resetBtn = document.getElementById("resetBtn");
+  const editPhotoBtn = document.getElementById("editPhotoBtn");
+  const retakeBtn = document.getElementById("retakeBtn");
+
+  // Photo editor modal elements
+  const photoEditorModal = document.getElementById("photoEditorModal");
+  const editorImage = document.getElementById("editorImage");
+  const editorRotateLeftBtn = document.getElementById("editorRotateLeftBtn");
+  const editorRotateRightBtn = document.getElementById("editorRotateRightBtn");
+  const editorCropBtn = document.getElementById("editorCropBtn");
+  const editorDoneBtn = document.getElementById("editorDoneBtn");
+  const editorCancelBtn = document.getElementById("editorCancelBtn");
 
   // Close buttons for modals
   const closeButtons = document.querySelectorAll(".close-btn");
@@ -37,6 +53,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let currentLanguage = "en";
   let products = [];
   let originalImageSrc = null;
+  let isCropping = false;
+  let cropStartX, cropStartY, cropWidth, cropHeight;
+  const cropCanvas = document.createElement("canvas");
+  const cropCtx = cropCanvas.getContext("2d");
+  let analysisMode = "combined"; // "photo", "combined", or "text"
 
   // Update the translations object to include all UI elements
   const translations = {
@@ -102,6 +123,15 @@ document.addEventListener("DOMContentLoaded", () => {
       noProducts: "No product recommendations available.",
       needImageOrBrand:
         "Please provide either an image or brand/model information",
+      analysisOptions: "Choose Analysis Method",
+      photoOnly: "Photo Only",
+      combined: "Photo + Details",
+      textOnly: "Text Only (No Photo)",
+      photoEditor: "Photo Editor",
+      rotate: "Rotate",
+      crop: "Crop",
+      cancel: "Cancel",
+      retake: "Retake Picture",
     },
     ru: {
       title: "ИИ Помощник по Обуви",
@@ -137,7 +167,7 @@ document.addEventListener("DOMContentLoaded", () => {
         "Укажите, какая часть обуви повреждена",
         'Нажмите "Анализировать Обувь", чтобы получить персонализированные рекомендации по уходу',
       ],
-      faq: "Часто Задаваемые Вопросы",
+      faq: "Часто З��даваемые Вопросы",
       faqItems: [
         {
           question: "Какие типы обуви я могу анализировать?",
@@ -165,6 +195,15 @@ document.addEventListener("DOMContentLoaded", () => {
       noProducts: "Нет доступных рекомендаций по товарам.",
       needImageOrBrand:
         "Пожалуйста, предоставьте изображение или информацию о бренде/модели",
+      analysisOptions: "Выберите Метод Анализа",
+      photoOnly: "Только Фото",
+      combined: "Фото + Детали",
+      textOnly: "Только Текст (Без Фото)",
+      photoEditor: "Редактор Фото",
+      rotate: "Повернуть",
+      crop: "Обрезать",
+      cancel: "Отмена",
+      retake: "Переснять",
     },
     lt: {
       title: "AI Batų Asistentas",
@@ -229,11 +268,19 @@ document.addEventListener("DOMContentLoaded", () => {
       noProducts: "Nėra rekomenduojamų produktų.",
       needImageOrBrand:
         "Pateikite nuotrauką arba prekės ženklo/modelio informaciją",
+      analysisOptions: "Pasirinkite Analizės Metodą",
+      photoOnly: "Tik Nuotrauka",
+      combined: "Nuotrauka + Detalės",
+      textOnly: "Tik Tekstas (Be Nuotraukos)",
+      photoEditor: "Nuotraukų Redaktorius",
+      rotate: "Pasukti",
+      crop: "Apkirpti",
+      cancel: "Atšaukti",
+      retake: "Fotografuoti iš naujo",
     },
   };
 
   // Initialize language
-  // Update the updateLanguage function to handle all translated elements
   function updateLanguage(lang) {
     currentLanguage = lang;
     const text = translations[lang] || translations.en;
@@ -318,6 +365,34 @@ document.addEventListener("DOMContentLoaded", () => {
     // Update product recommendations
     document.querySelector("#productsModal h3").textContent =
       text.recommendedProducts;
+
+    // Update analysis options
+    if (document.querySelector("#analysisOptionsTitle")) {
+      document.querySelector("#analysisOptionsTitle").textContent =
+        text.analysisOptions;
+      photoOnlyBtn.textContent = text.photoOnly;
+      combinedBtn.textContent = text.combined;
+      textOnlyBtn.textContent = text.textOnly;
+    }
+
+    // Update photo editor
+    if (document.querySelector("#photoEditorModal h3")) {
+      document.querySelector("#photoEditorModal h3").textContent =
+        text.photoEditor;
+      editorRotateLeftBtn.querySelector("span").textContent = text.rotate;
+      editorRotateRightBtn.querySelector("span").textContent = text.rotate;
+      editorCropBtn.querySelector("span").textContent = text.crop;
+      editorDoneBtn.textContent = text.doneEditing;
+      editorCancelBtn.textContent = text.cancel;
+    }
+
+    // Update image editor controls
+    if (editPhotoBtn) {
+      editPhotoBtn.innerHTML = `<i class="fas fa-edit"></i> ${text.editPhoto}`;
+    }
+    if (retakeBtn) {
+      retakeBtn.innerHTML = `<i class="fas fa-sync-alt"></i> ${text.retake}`;
+    }
   }
 
   // Event Listeners
@@ -372,14 +447,61 @@ document.addEventListener("DOMContentLoaded", () => {
     updateImageTransform();
   });
 
-  // Replace crop button with retake photo button
-  retakePhotoBtn.addEventListener("click", () => {
-    resetUploadSection();
-  });
+  // Edit photo button
+  if (editPhotoBtn) {
+    editPhotoBtn.addEventListener("click", openPhotoEditor);
+  }
 
-  resetBtn.addEventListener("click", () => {
-    resetImageEditing();
-  });
+  // Retake button
+  if (retakeBtn) {
+    retakeBtn.addEventListener("click", resetUploadSection);
+  }
+
+  // Photo editor modal controls
+  if (editorRotateLeftBtn) {
+    editorRotateLeftBtn.addEventListener("click", () => {
+      currentRotation -= 90;
+      updateEditorImageTransform();
+    });
+  }
+
+  if (editorRotateRightBtn) {
+    editorRotateRightBtn.addEventListener("click", () => {
+      currentRotation += 90;
+      updateEditorImageTransform();
+    });
+  }
+
+  if (editorCropBtn) {
+    editorCropBtn.addEventListener("click", toggleCropMode);
+  }
+
+  if (editorDoneBtn) {
+    editorDoneBtn.addEventListener("click", applyEditsAndClose);
+  }
+
+  if (editorCancelBtn) {
+    editorCancelBtn.addEventListener("click", cancelEditing);
+  }
+
+  // Analysis option buttons
+  if (photoOnlyBtn) {
+    photoOnlyBtn.addEventListener("click", () => {
+      setAnalysisMode("photo");
+    });
+  }
+
+  if (combinedBtn) {
+    combinedBtn.addEventListener("click", () => {
+      setAnalysisMode("combined");
+    });
+  }
+
+  if (textOnlyBtn) {
+    textOnlyBtn.addEventListener("click", () => {
+      setAnalysisMode("text");
+    });
+  }
 
   // Submit button click
   submitButton.addEventListener("click", analyzeShoe);
@@ -410,6 +532,7 @@ document.addEventListener("DOMContentLoaded", () => {
       shareModal.style.display = "none";
       productsModal.style.display = "none";
       qualityAlertModal.style.display = "none";
+      photoEditorModal.style.display = "none";
     });
   });
 
@@ -447,6 +570,273 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Functions
 
+  // Set analysis mode
+  function setAnalysisMode(mode) {
+    analysisMode = mode;
+
+    // Update UI based on selected mode
+    if (mode === "photo") {
+      // Show upload section, hide brand input
+      document.querySelector(".upload-section").style.display = "block";
+      document.querySelector(".input-section").classList.add("photo-only-mode");
+      document.getElementById("shoeBrand").parentElement.style.display = "none";
+      submitButton.disabled = !fileInput.files || !fileInput.files[0];
+    } else if (mode === "text") {
+      // Hide upload section, show brand input
+      document.querySelector(".upload-section").style.display = "none";
+      document.querySelector(".input-section").classList.add("text-only-mode");
+      document.getElementById("shoeBrand").parentElement.style.display =
+        "block";
+      submitButton.disabled = !document
+        .getElementById("shoeBrand")
+        .value.trim();
+    } else {
+      // combined
+      // Show both upload section and brand input
+      document.querySelector(".upload-section").style.display = "block";
+      document
+        .querySelector(".input-section")
+        .classList.remove("photo-only-mode");
+      document
+        .querySelector(".input-section")
+        .classList.remove("text-only-mode");
+      document.getElementById("shoeBrand").parentElement.style.display =
+        "block";
+      submitButton.disabled =
+        (!fileInput.files || !fileInput.files[0]) &&
+        !document.getElementById("shoeBrand").value.trim();
+    }
+    // Update active button styling
+    [photoOnlyBtn, combinedBtn, textOnlyBtn].forEach((btn) => {
+      if (btn) btn.classList.remove("active");
+    });
+
+    if (mode === "photo" && photoOnlyBtn) {
+      photoOnlyBtn.classList.add("active");
+    } else if (mode === "text" && textOnlyBtn) {
+      textOnlyBtn.classList.add("active");
+    } else if (mode === "combined" && combinedBtn) {
+      combinedBtn.classList.add("active");
+    }
+  }
+
+  // Open photo editor
+  function openPhotoEditor() {
+    if (!originalImageSrc) return;
+
+    // Reset editor state
+    currentRotation = 0;
+    isCropping = false;
+
+    // Set editor image
+    editorImage.src = originalImageSrc;
+
+    // Show editor modal
+    photoEditorModal.style.display = "flex";
+
+    // Update transform
+    updateEditorImageTransform();
+  }
+
+  // Toggle crop mode
+  function toggleCropMode() {
+    isCropping = !isCropping;
+
+    if (isCropping) {
+      // Enable crop mode
+      editorCropBtn.classList.add("active");
+      editorImage.style.cursor = "crosshair";
+
+      // Add crop event listeners
+      editorImage.addEventListener("mousedown", startCrop);
+      document.addEventListener("mousemove", updateCrop);
+      document.addEventListener("mouseup", endCrop);
+    } else {
+      // Disable crop mode
+      editorCropBtn.classList.remove("active");
+      editorImage.style.cursor = "default";
+
+      // Remove crop event listeners
+      editorImage.removeEventListener("mousedown", startCrop);
+      document.removeEventListener("mousemove", updateCrop);
+      document.removeEventListener("mouseup", endCrop);
+
+      // Remove crop overlay if exists
+      const cropOverlay = document.getElementById("cropOverlay");
+      if (cropOverlay) cropOverlay.remove();
+    }
+  }
+
+  // Start crop
+  function startCrop(e) {
+    if (!isCropping) return;
+
+    // Get image position and dimensions
+    const rect = editorImage.getBoundingClientRect();
+
+    // Calculate start position relative to image
+    cropStartX = e.clientX - rect.left;
+    cropStartY = e.clientY - rect.top;
+
+    // Create crop overlay if it doesn't exist
+    let cropOverlay = document.getElementById("cropOverlay");
+    if (!cropOverlay) {
+      cropOverlay = document.createElement("div");
+      cropOverlay.id = "cropOverlay";
+      cropOverlay.style.position = "absolute";
+      cropOverlay.style.border = "2px dashed white";
+      cropOverlay.style.backgroundColor = "rgba(255, 255, 255, 0.2)";
+      cropOverlay.style.pointerEvents = "none";
+      editorImage.parentElement.appendChild(cropOverlay);
+    }
+
+    // Position overlay at start position
+    cropOverlay.style.left = `${rect.left + cropStartX}px`;
+    cropOverlay.style.top = `${rect.top + cropStartY}px`;
+    cropOverlay.style.width = "0px";
+    cropOverlay.style.height = "0px";
+  }
+
+  // Update crop
+  function updateCrop(e) {
+    if (!isCropping) return;
+
+    const cropOverlay = document.getElementById("cropOverlay");
+    if (!cropOverlay) return;
+
+    // Get image position
+    const rect = editorImage.getBoundingClientRect();
+
+    // Calculate current position relative to image
+    const currentX = Math.min(Math.max(e.clientX - rect.left, 0), rect.width);
+    const currentY = Math.min(Math.max(e.clientY - rect.top, 0), rect.height);
+
+    // Calculate width and height
+    cropWidth = Math.abs(currentX - cropStartX);
+    cropHeight = Math.abs(currentY - cropStartY);
+
+    // Calculate top-left position
+    const overlayX = currentX > cropStartX ? cropStartX : currentX;
+    const overlayY = currentY > cropStartY ? cropStartY : currentY;
+
+    // Update overlay position and size
+    cropOverlay.style.left = `${rect.left + overlayX}px`;
+    cropOverlay.style.top = `${rect.top + overlayY}px`;
+    cropOverlay.style.width = `${cropWidth}px`;
+    cropOverlay.style.height = `${cropHeight}px`;
+  }
+
+  // End crop
+  function endCrop() {
+    if (!isCropping) return;
+
+    // Store crop dimensions for later use
+    // We'll apply the crop when the user clicks "Done"
+  }
+
+  // Apply edits and close editor
+  function applyEditsAndClose() {
+    // Apply rotation and crop to the image
+    const img = new Image();
+    img.onload = () => {
+      // Create canvas for editing
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+
+      // Set canvas dimensions based on image orientation
+      let width = img.width;
+      let height = img.height;
+
+      // Swap dimensions if rotated by 90 or 270 degrees
+      if (
+        Math.abs(currentRotation % 360) === 90 ||
+        Math.abs(currentRotation % 360) === 270
+      ) {
+        [width, height] = [height, width];
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+
+      // Clear canvas
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Apply rotation
+      ctx.translate(canvas.width / 2, canvas.height / 2);
+      ctx.rotate((currentRotation * Math.PI) / 180);
+      ctx.drawImage(img, -img.width / 2, -img.height / 2);
+
+      // Apply crop if needed
+      if (isCropping && cropWidth > 10 && cropHeight > 10) {
+        // Calculate crop dimensions relative to original image
+        const imgRect = editorImage.getBoundingClientRect();
+        const scaleX = img.width / imgRect.width;
+        const scaleY = img.height / imgRect.height;
+
+        // Create a new canvas for the cropped image
+        const cropCanvas = document.createElement("canvas");
+        const cropCtx = cropCanvas.getContext("2d");
+
+        // Set crop canvas dimensions
+        cropCanvas.width = cropWidth * scaleX;
+        cropCanvas.height = cropHeight * scaleY;
+
+        // Calculate top-left position for cropping
+        const cropX = Math.min(cropStartX, cropStartX + cropWidth) * scaleX;
+        const cropY = Math.min(cropStartY, cropStartY + cropHeight) * scaleY;
+
+        // Draw cropped portion to the new canvas
+        cropCtx.drawImage(
+          canvas,
+          cropX - canvas.width / 2 + img.width / 2,
+          cropY - canvas.height / 2 + img.height / 2,
+          cropWidth * scaleX,
+          cropHeight * scaleY,
+          0,
+          0,
+          cropCanvas.width,
+          cropCanvas.height
+        );
+
+        // Update the preview image with cropped version
+        previewImage.src = cropCanvas.toDataURL("image/jpeg", 0.8);
+      } else {
+        // Update the preview image with rotated version
+        previewImage.src = canvas.toDataURL("image/jpeg", 0.8);
+      }
+
+      // Reset crop mode
+      isCropping = false;
+      const cropOverlay = document.getElementById("cropOverlay");
+      if (cropOverlay) cropOverlay.remove();
+
+      // Close editor modal
+      photoEditorModal.style.display = "none";
+
+      // Reset rotation for the preview image
+      currentRotation = 0;
+      updateImageTransform();
+    };
+
+    img.src = originalImageSrc;
+  }
+
+  // Cancel editing
+  function cancelEditing() {
+    // Reset crop mode
+    isCropping = false;
+    const cropOverlay = document.getElementById("cropOverlay");
+    if (cropOverlay) cropOverlay.remove();
+
+    // Close editor modal
+    photoEditorModal.style.display = "none";
+  }
+
+  // Update editor image transform
+  function updateEditorImageTransform() {
+    editorImage.style.transform = `rotate(${currentRotation}deg)`;
+  }
+
   // Handle file selection
   function handleFileSelect() {
     const file = fileInput.files[0];
@@ -473,8 +863,10 @@ document.addEventListener("DOMContentLoaded", () => {
         dropZone.style.display = "none";
         imageEditorContainer.style.display = "block";
 
-        // Enable submit button
-        submitButton.disabled = false;
+        // Enable submit button if in photo or combined mode
+        if (analysisMode === "photo" || analysisMode === "combined") {
+          submitButton.disabled = false;
+        }
 
         // Reset rotation
         currentRotation = 0;
@@ -487,76 +879,6 @@ document.addEventListener("DOMContentLoaded", () => {
   // Update image transform for editing
   function updateImageTransform() {
     previewImage.style.transform = `rotate(${currentRotation}deg)`;
-  }
-
-  // Check image quality
-  function checkImageQuality(dataUrl) {
-    // We'll rely on the backend for image quality analysis
-    // This function now just displays the image preview
-    const img = new Image();
-    img.onload = () => {
-      // Just set up the preview, no quality checks here
-      previewImage.src = dataUrl;
-      dropZone.style.display = "none";
-      imageEditorContainer.style.display = "block";
-
-      // Enable submit button
-      submitButton.disabled = false;
-    };
-    img.src = dataUrl;
-  }
-
-  // Detect blur in image
-  function detectBlur(imageData) {
-    // Simple Laplacian filter for edge detection
-    // High edge values indicate sharp image, low values indicate blur
-    const data = imageData.data;
-    const width = imageData.width;
-    const height = imageData.height;
-    let edgeSum = 0;
-
-    for (let y = 1; y < height - 1; y++) {
-      for (let x = 1; x < width - 1; x++) {
-        const idx = (y * width + x) * 4;
-        const grayValue =
-          0.3 * data[idx] + 0.59 * data[idx + 1] + 0.11 * data[idx + 2];
-
-        // Get surrounding pixels
-        const idxTop = ((y - 1) * width + x) * 4;
-        const idxBottom = ((y + 1) * width + x) * 4;
-        const idxLeft = (y * width + (x - 1)) * 4;
-        const idxRight = (y * width + (x + 1)) * 4;
-
-        const grayTop =
-          0.3 * data[idxTop] +
-          0.59 * data[idxTop + 1] +
-          0.11 * data[idxTop + 2];
-        const grayBottom =
-          0.3 * data[idxBottom] +
-          0.59 * data[idxBottom + 1] +
-          0.11 * data[idxBottom + 2];
-        const grayLeft =
-          0.3 * data[idxLeft] +
-          0.59 * data[idxLeft + 1] +
-          0.11 * data[idxLeft + 2];
-        const grayRight =
-          0.3 * data[idxRight] +
-          0.59 * data[idxRight + 1] +
-          0.11 * data[idxRight + 2];
-
-        // Laplacian filter
-        const edge = Math.abs(
-          4 * grayValue - grayTop - grayBottom - grayLeft - grayRight
-        );
-        edgeSum += edge;
-      }
-    }
-
-    // Normalize edge sum
-    const normalizedEdgeSum = edgeSum / (width * height);
-
-    // Return blur score (inverse of edge detection)
-    return 1 - Math.min(normalizedEdgeSum / 20, 1);
   }
 
   // Show quality alert
@@ -590,14 +912,10 @@ document.addEventListener("DOMContentLoaded", () => {
       btn.textContent = text.tryTextOnly;
       btn.addEventListener("click", () => {
         qualityAlertModal.style.display = "none";
+        // Switch to text-only mode
+        setAnalysisMode("text");
         // Focus on the brand/model input field
         document.getElementById("shoeBrand").focus();
-        // Clear the image
-        resetUploadSection();
-        // Add a visual indicator that we're in text-only mode
-        document
-          .querySelector(".input-section")
-          .classList.add("text-only-mode");
       });
 
       // Insert the button before the retake photo button
@@ -613,9 +931,20 @@ document.addEventListener("DOMContentLoaded", () => {
     previewImage.src = "";
     dropZone.style.display = "block";
     imageEditorContainer.style.display = "none";
-    submitButton.disabled = true;
+
+    // Disable submit button if in photo mode
+    if (analysisMode === "photo") {
+      submitButton.disabled = true;
+    } else if (analysisMode === "combined") {
+      // In combined mode, disable only if brand is also empty
+      submitButton.disabled = !document
+        .getElementById("shoeBrand")
+        .value.trim();
+    }
+
     currentRotation = 0;
     currentScale = 1;
+    originalImageSrc = null;
   }
 
   // Analyze shoe
@@ -625,11 +954,21 @@ document.addEventListener("DOMContentLoaded", () => {
     const affectedPart = document.getElementById("affectedPart").value;
     const shoeBrand = document.getElementById("shoeBrand").value;
 
-    // Check if we have either an image or brand information
-    const hasImage = fileInput.files && fileInput.files[0];
-    const hasBrandInfo = shoeBrand && shoeBrand.trim().length > 0;
+    // Check if we have either an image or brand information based on analysis mode
+    const hasImage =
+      fileInput.files &&
+      fileInput.files[0] &&
+      (analysisMode === "photo" || analysisMode === "combined");
+    const hasBrandInfo =
+      shoeBrand &&
+      shoeBrand.trim().length > 0 &&
+      (analysisMode === "text" || analysisMode === "combined");
 
-    if (!hasImage && !hasBrandInfo) {
+    if (
+      (analysisMode === "photo" && !hasImage) ||
+      (analysisMode === "text" && !hasBrandInfo) ||
+      (analysisMode === "combined" && !hasImage && !hasBrandInfo)
+    ) {
       alert(
         translations[currentLanguage].needImageOrBrand ||
           "Please provide either an image or brand/model information"
@@ -666,6 +1005,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const backendURL =
         "https://shoe-recognition-app-v2-backend.onrender.com/analyze-shoe";
 
+      // Modify the prompt to request product tags
+      const modifiedPrompt = `
+        ${problemDescription}
+        
+        In addition to the standard analysis, please provide 3-5 tags that most accurately describe the products this shoe would need. 
+        These tags should be from the following categories:
+        - General Categories: Leather, Suede, Nubuck, Sneakers, Protect, Repel, Waterproofing
+        - Shoe Care Subcategories: Cleaner, Cleaning Products, Nourishment, Restore, Reviver, Deodorant
+        - Insoles Subcategories: Basic, Sport, Winter
+        - Accessories Subcategories: Brush, Horns, Trees, Laces
+        - Seasonal Picks: Autumn, Winter, Spring
+        - Featured & Special Collections: Best Selling, Featured
+        
+        Include these tags in a separate "recommendedTags" array in your JSON response.
+      `;
+
       // Send request to backend
       const response = await fetch(backendURL, {
         method: "POST",
@@ -674,7 +1029,7 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         body: JSON.stringify({
           base64Image: base64Image,
-          problemDescription: problemDescription,
+          problemDescription: modifiedPrompt,
           affectedPart: affectedPart,
           brand: shoeBrand,
           language: currentLanguage,
@@ -699,7 +1054,7 @@ document.addEventListener("DOMContentLoaded", () => {
       updateProgress(50, text.gettingRecommendations);
       await new Promise((resolve) => setTimeout(resolve, 1500));
 
-      // Fetch product recommendations
+      // Fetch product recommendations based on tags
       await fetchProductRecommendations(data);
 
       // Stage 4: Finalizing
@@ -795,25 +1150,90 @@ document.addEventListener("DOMContentLoaded", () => {
   // Fetch product recommendations
   async function fetchProductRecommendations(data) {
     try {
-      // Use the product data from products.js
-      if (window.productData) {
-        // Extract keywords from the shoe details
+      // Extract tags from the AI response
+      const tags = data.recommendedTags || [];
+
+      // If no tags were provided, extract keywords from the shoe details
+      if (tags.length === 0) {
         const keywords = extractKeywords(data);
 
-        // Score and filter products
-        products = scoreAndFilterProducts(window.productData, keywords);
-
-        console.log(`Found ${products.length} relevant products`);
-        return;
+        // Use the keywords to find matching products
+        products = findProductsByKeywords(window.productData, keywords);
+      } else {
+        // Use the AI-provided tags to find matching products
+        products = findProductsByTags(window.productData, tags);
       }
 
-      // Fallback to sample products if product data is not available
-      console.error("Product data not available");
-      products = getSampleProducts();
+      console.log(`Found ${products.length} relevant products`);
+
+      // If no products were found, use fallback method
+      if (products.length === 0) {
+        products = getSampleProducts();
+      }
     } catch (error) {
       console.error("Error fetching product recommendations:", error);
       products = getSampleProducts();
     }
+  }
+
+  // Find products by AI-provided tags
+  function findProductsByTags(productData, tags) {
+    if (!productData || !Array.isArray(productData)) {
+      console.error("Product data is not available or not an array");
+      return getSampleProducts();
+    }
+
+    // Score each product based on tag matches
+    const scoredProducts = productData.map((product) => {
+      // Get product tags (from the tags field)
+      const productTags = product.tags
+        ? product.tags.toLowerCase().split(", ")
+        : [];
+
+      // Calculate match score
+      let score = 0;
+      let matchedTags = 0;
+
+      tags.forEach((tag) => {
+        const tagLower = tag.toLowerCase();
+
+        // Check if product tags include this tag
+        if (productTags.some((pt) => pt.includes(tagLower))) {
+          score += 3;
+          matchedTags++;
+        }
+
+        // Check if product title includes this tag
+        if (product.title.toLowerCase().includes(tagLower)) {
+          score += 2;
+        }
+
+        // Check if product vendor includes this tag
+        if (product.vendor && product.vendor.toLowerCase().includes(tagLower)) {
+          score += 1;
+        }
+      });
+
+      // Bonus for percentage of matched tags
+      const matchPercentage = tags.length > 0 ? matchedTags / tags.length : 0;
+      score += matchPercentage * 5;
+
+      return { product, score };
+    });
+
+    // Sort by score (highest first) and take top 6
+    return scoredProducts
+      .filter((item) => item.score > 0) // Only include products with matches
+      .sort((a, b) => b.score - a.score)
+      .slice(0, 6)
+      .map((item) => ({
+        id: item.product.id,
+        title: item.product.title,
+        price: item.product.price,
+        image: item.product.image,
+        vendor: item.product.vendor,
+        url: `https://example.com/products/${item.product.id}`,
+      }));
   }
 
   // Function to extract keywords from shoe details
@@ -899,8 +1319,13 @@ document.addEventListener("DOMContentLoaded", () => {
     return [...new Set(keywords)];
   }
 
-  // Function to score and filter products based on keywords
-  function scoreAndFilterProducts(productData, keywords) {
+  // Find products by keywords
+  function findProductsByKeywords(productData, keywords) {
+    if (!productData || !Array.isArray(productData)) {
+      console.error("Product data is not available or not an array");
+      return getSampleProducts();
+    }
+
     // Score each product based on keyword matches
     const scoredProducts = productData.map((product) => {
       // Combine relevant product fields for matching
@@ -1063,9 +1488,25 @@ document.addEventListener("DOMContentLoaded", () => {
       resultsHTML += `<p>No general care information available.</p>`;
     }
 
+    // Add recommended tags if available
+    if (data.recommendedTags && data.recommendedTags.length > 0) {
+      resultsHTML += `
+        <div class="result-item">
+          <h3>Recommended Product Categories</h3>
+          <div class="tags-container">
+      `;
+
+      data.recommendedTags.forEach((tag) => {
+        resultsHTML += `<span class="tag">${tag}</span>`;
+      });
+
+      resultsHTML += `
+          </div>
+        </div>
+      `;
+    }
+
     resultsHTML += `
-      </div>
-      
       <div class="result-item">
         <button id="viewProductsBtn" class="button primary-btn">
           <i class="fas fa-shopping-cart"></i> View Recommended Products
@@ -1162,23 +1603,12 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Reset image editing
-  function resetImageEditing() {
-    // Reset rotation
-    currentRotation = 0;
-
-    // Reset image to original
-    if (originalImageSrc) {
-      previewImage.src = originalImageSrc;
-    }
-
-    // Reset transform
-    updateImageTransform();
-  }
-
   function init() {
     // Load initial language
     updateLanguage(languageSelect.value);
+
+    // Set default analysis mode
+    setAnalysisMode("combined");
 
     // Disable submit button initially
     submitButton.disabled = true;
@@ -1189,44 +1619,44 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Create sample products file
   function createSampleProductsFile() {
-    // Sample product data
-    const sampleProducts = [
-      {
-        id: 1,
-        title: "Shoe Cleaner Kit",
-        price: "$19.99",
-        image: "https://via.placeholder.com/200x150?text=Shoe+Cleaner+Kit",
-      },
-      {
-        id: 2,
-        title: "Leather Conditioner",
-        price: "$12.99",
-        image: "https://via.placeholder.com/200x150?text=Leather+Conditioner",
-      },
-      {
-        id: 3,
-        title: "Suede Brush",
-        price: "$8.99",
-        image: "https://via.placeholder.com/200x150?text=Suede+Brush",
-      },
-      {
-        id: 4,
-        title: "Water Repellent Spray",
-        price: "$14.99",
-        image: "https://via.placeholder.com/200x150?text=Water+Repellent",
-      },
-    ];
+    // Sample product data is already loaded from products.js
+    if (!window.productData) {
+      console.warn(
+        "Product data not found in window.productData, using fallback"
+      );
+      window.productData = [
+        {
+          id: 1,
+          title: "Shoe Cleaner Kit",
+          price: "$19.99",
+          image: "https://via.placeholder.com/200x150?text=Shoe+Cleaner+Kit",
+          tags: "Cleaner, Cleaning Products, Shoe Care",
+        },
+        {
+          id: 2,
+          title: "Leather Conditioner",
+          price: "$12.99",
+          image: "https://via.placeholder.com/200x150?text=Leather+Conditioner",
+          tags: "Leather, Nourishment, Restore, Reviver, Shoe Care",
+        },
+        {
+          id: 3,
+          title: "Suede Brush",
+          price: "$8.99",
+          image: "https://via.placeholder.com/200x150?text=Suede+Brush",
+          tags: "Brush, Shoe Care, Suede",
+        },
+        {
+          id: 4,
+          title: "Water Repellent Spray",
+          price: "$14.99",
+          image: "https://via.placeholder.com/200x150?text=Water+Repellent",
+          tags: "Protect, Repel, Shoe Care, Waterproofing",
+        },
+      ];
+    }
 
-    // Store in window object instead of downloading
-    window.sampleProducts = sampleProducts;
-
-    // Create a hidden products.json file in memory
-    const blob = new Blob([JSON.stringify(sampleProducts)], {
-      type: "application/json",
-    });
-    window.productsJsonUrl = URL.createObjectURL(blob);
-
-    console.log("Sample products loaded in memory");
+    console.log("Product data loaded");
   }
 
   // Initialize the app
