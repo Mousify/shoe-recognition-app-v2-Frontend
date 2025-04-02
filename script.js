@@ -1319,21 +1319,23 @@ document.addEventListener("DOMContentLoaded", () => {
   const tooltipIcons = document.querySelectorAll(".tooltip-icon");
   tooltipIcons.forEach((icon) => {
     icon.addEventListener("click", (e) => {
-      // Check if we're on a touch device
-      if (window.matchMedia("(hover: none)").matches) {
-        e.preventDefault();
-        e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
 
-        // Remove active class from all tooltips
-        tooltipIcons.forEach((i) => i.classList.remove("active"));
+      // Check if this tooltip is already active
+      const isActive = icon.classList.contains("active");
 
-        // Add active class to clicked tooltip
+      // Remove active class from all tooltips
+      tooltipIcons.forEach((i) => i.classList.remove("active"));
+
+      // If this tooltip wasn't active, make it active
+      if (!isActive) {
         icon.classList.add("active");
 
-        // Hide tooltip after 3 seconds
+        // Hide tooltip after 5 seconds (extended from 3 seconds)
         setTimeout(() => {
           icon.classList.remove("active");
-        }, 3000);
+        }, 5000);
       }
     });
   });
@@ -1349,7 +1351,7 @@ document.addEventListener("DOMContentLoaded", () => {
   updateLanguage(languageSelect.value);
 });
 
-// Add mobile tooltip behavior to keep tooltips visible until user interaction
+// Mobile tooltip behavior - removed the auto-show on page load
 document.addEventListener("DOMContentLoaded", () => {
   // Mobile tooltip behavior
   const tooltipIcons = document.querySelectorAll(".tooltip-icon");
@@ -1369,6 +1371,11 @@ document.addEventListener("DOMContentLoaded", () => {
       // If this tooltip wasn't active, make it active
       if (!isActive) {
         icon.classList.add("active");
+
+        // Hide tooltip after 5 seconds (extended from 3 seconds)
+        setTimeout(() => {
+          icon.classList.remove("active");
+        }, 5000);
       }
     });
   });
