@@ -623,6 +623,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Reset rotation
         currentRotation = 0;
+        currentScale = 1;
         updateImageTransform();
       };
       reader.readAsDataURL(file);
@@ -631,7 +632,34 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Update image transform for editing
   function updateImageTransform() {
-    previewImage.style.transform = `rotate(${currentRotation}deg)`;
+    // Get the container dimensions
+    const container = document.querySelector(".image-preview-wrapper");
+    const containerWidth = container.clientWidth;
+
+    // Get the original image dimensions
+    const imgWidth = previewImage.naturalWidth;
+    const imgHeight = previewImage.naturalHeight;
+
+    // Calculate the aspect ratio
+    const imgRatio = imgWidth / imgHeight;
+
+    // Determine if we need to adjust scale based on rotation
+    let scale = 1;
+    if (Math.abs(currentRotation % 180) === 90) {
+      // When rotated 90 or 270 degrees, we need to adjust scale for tall images
+      if (imgRatio > 1) {
+        // Wide image becomes tall when rotated
+        scale = Math.min(
+          1,
+          (containerWidth / imgHeight) * (imgWidth / containerWidth) * 0.8
+        );
+      }
+    }
+
+    // Apply the transformation
+    previewImage.style.transform = `rotate(${currentRotation}deg) scale(${
+      scale * currentScale
+    })`;
   }
 
   // Reset image editing

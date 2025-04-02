@@ -272,6 +272,9 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
 }
 
 #previewImage {
@@ -279,6 +282,8 @@ main {
   max-height: 300px;
   border-radius: 8px;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  object-fit: contain;
+  transition: transform 0.3s ease;
 }
 
 .edit-controls {
