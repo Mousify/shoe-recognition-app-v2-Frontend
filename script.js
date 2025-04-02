@@ -113,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
       textOnly: "Text Only (No Photo)",
       cropImage: "Crop Image",
       applyCrop: "Apply Crop",
-      cancelCrop: "Cancel",
+      cancelCrop: "Atšaukti",
     },
     ru: {
       title: "ИИ Помощник по Обуви",
@@ -394,11 +394,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     switch (method) {
       case "photo":
-        // Show upload section and all input fields
+        // Show upload section and all input fields except brand
         uploadSection.style.display = "block";
         inputSection.style.display = "grid";
 
-        // Show all input fields except brand field
+        // Show problem and affected part fields
         document.querySelector(
           'label[for="problemDescription"]'
         ).parentNode.style.display = "block";
@@ -406,10 +406,8 @@ document.addEventListener("DOMContentLoaded", () => {
           'label[for="affectedPart"]'
         ).parentNode.style.display = "block";
 
-        // Disable brand field in "photo" mode
-        brandField.disabled = true;
-        brandField.placeholder = "Brand field disabled in Photo Only mode";
-        brandInputGroup.style.opacity = "0.6";
+        // Hide brand field completely in "photo" mode
+        brandInputGroup.style.display = "none";
 
         // Enable submit button only when image is uploaded
         submitButton.disabled =
@@ -428,11 +426,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector(
           'label[for="affectedPart"]'
         ).parentNode.style.display = "block";
+        brandInputGroup.style.display = "block";
         brandField.disabled = false;
         brandField.placeholder =
           translations[currentLanguage].brandPlaceholder ||
           "e.g., Nike Air Jordan 1, Adidas Ultraboost";
-        brandInputGroup.style.opacity = "1";
 
         // Enable submit button only when image is uploaded
         submitButton.disabled =
@@ -451,11 +449,11 @@ document.addEventListener("DOMContentLoaded", () => {
         document.querySelector(
           'label[for="affectedPart"]'
         ).parentNode.style.display = "block";
+        brandInputGroup.style.display = "block";
         brandField.disabled = false;
         brandField.placeholder =
           translations[currentLanguage].brandPlaceholder ||
           "e.g., Nike Air Jordan 1, Adidas Ultraboost";
-        brandInputGroup.style.opacity = "1";
 
         // Enable submit button (will be disabled if brand is empty in validation)
         submitButton.disabled = false;
@@ -1087,9 +1085,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const brandSection = document.createElement("div");
     brandSection.className = "result-item";
     brandSection.innerHTML = `
-      <h3>${text.brandAndModel}</h3>
-      <p>${data.brandAndModel || "Unknown"}</p>
-    `;
+    <h3>${text.brandAndModel}</h3>
+    <p>${data.brandAndModel || "Unknown"}</p>
+  `;
     resultContainer.appendChild(brandSection);
 
     // Create materials section
@@ -1110,11 +1108,11 @@ document.addEventListener("DOMContentLoaded", () => {
           const materialItem = document.createElement("div");
           materialItem.className = "material-item";
           materialItem.innerHTML = `
-            <div class="material-part">${
-              part.charAt(0).toUpperCase() + part.slice(1)
-            }</div>
-            <div>${material}</div>
-          `;
+          <div class="material-part">${
+            part.charAt(0).toUpperCase() + part.slice(1)
+          }</div>
+          <div>${material}</div>
+        `;
           materialsGrid.appendChild(materialItem);
         }
       }
@@ -1178,33 +1176,33 @@ document.addEventListener("DOMContentLoaded", () => {
       const productsSection = document.createElement("div");
       productsSection.className = "result-item";
       productsSection.innerHTML = `
-        <h3>${text.recommendedProducts}</h3>
-        <div class="products-preview">
-          <div class="products-grid">
-            ${products
-              .slice(0, 3)
-              .map(
-                (product) => `
-              <div class="product-card">
-                <img src="${product.image}" alt="${product.title}" class="product-image">
-                <div class="product-info">
-                  <div class="product-title">${product.title}</div>
-                  <div class="product-vendor">${product.vendor}</div>
-                  <div class="product-price">${product.price}</div>
-                  <button class="product-btn" data-product-id="${product.id}">${text.viewProduct}</button>
-                </div>
+      <h3>${text.recommendedProducts}</h3>
+      <div class="products-preview">
+        <div class="products-grid">
+          ${products
+            .slice(0, 3)
+            .map(
+              (product) => `
+            <div class="product-card">
+              <img src="${product.image}" alt="${product.title}" class="product-image">
+              <div class="product-info">
+                <div class="product-title">${product.title}</div>
+                <div class="product-vendor">${product.vendor}</div>
+                <div class="product-price">${product.price}</div>
+                <button class="product-btn" data-product-id="${product.id}">${text.viewProduct}</button>
               </div>
-            `
-              )
-              .join("")}
-          </div>
-          ${
-            products.length > 3
-              ? `<button id="viewAllProductsBtn" class="button secondary-btn">View All Products</button>`
-              : ""
-          }
+            </div>
+          `
+            )
+            .join("")}
         </div>
-      `;
+        ${
+          products.length > 3
+            ? `<div class="view-all-btn-container"><button id="viewAllProductsBtn" class="button secondary-btn">View All Products</button></div>`
+            : ""
+        }
+      </div>
+    `;
       resultContainer.appendChild(productsSection);
 
       // Add event listener for view all products button
@@ -1241,14 +1239,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const productCard = document.createElement("div");
         productCard.className = "product-card";
         productCard.innerHTML = `
-          <img src="${product.image}" alt="${product.title}" class="product-image">
-          <div class="product-info">
-            <div class="product-title">${product.title}</div>
-            <div class="product-vendor">${product.vendor}</div>
-            <div class="product-price">${product.price}</div>
-            <button class="product-btn" data-product-url="${product.url}">${text.viewProduct}</button>
-          </div>
-        `;
+        <img src="${product.image}" alt="${product.title}" class="product-image">
+        <div class="product-info">
+          <div class="product-title">${product.title}</div>
+          <div class="product-vendor">${product.vendor}</div>
+          <div class="product-price">${product.price}</div>
+          <button class="product-btn" data-product-url="${product.url}">${text.viewProduct}</button>
+        </div>
+      `;
         productsList.appendChild(productCard);
       });
 
@@ -1350,4 +1348,73 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize the app
   updateLanguage(languageSelect.value);
+});
+
+// Add mobile tooltip behavior to keep tooltips visible until user interaction
+document.addEventListener("DOMContentLoaded", () => {
+  // Existing code...
+
+  // Mobile tooltip behavior
+  const tooltipIcons = document.querySelectorAll(".tooltip-icon");
+  let hasUserInteracted = false;
+
+  // Function to show tooltips on mobile by default
+  function showMobileTooltips() {
+    if (window.matchMedia("(hover: none)").matches && !hasUserInteracted) {
+      tooltipIcons.forEach((icon) => {
+        icon.classList.add("active");
+      });
+    }
+  }
+
+  // Show tooltips on page load for mobile
+  showMobileTooltips();
+
+  // Hide tooltips after user interaction (click or scroll)
+  function handleUserInteraction() {
+    if (!hasUserInteracted && window.matchMedia("(hover: none)").matches) {
+      hasUserInteracted = true;
+      tooltipIcons.forEach((icon) => {
+        icon.classList.remove("active");
+      });
+    }
+  }
+
+  // Add event listeners for user interaction
+  document.addEventListener("click", handleUserInteraction);
+  document.addEventListener("scroll", handleUserInteraction);
+
+  // Update the tooltip click behavior for mobile
+  tooltipIcons.forEach((icon) => {
+    icon.addEventListener("click", (e) => {
+      // Check if we're on a touch device
+      if (window.matchMedia("(hover: none)").matches) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // If this is the first interaction, mark as interacted
+        if (!hasUserInteracted) {
+          hasUserInteracted = true;
+        }
+
+        // Toggle this specific tooltip
+        const isActive = icon.classList.contains("active");
+
+        // Remove active class from all tooltips
+        tooltipIcons.forEach((i) => i.classList.remove("active"));
+
+        // If this tooltip wasn't active, make it active
+        if (!isActive) {
+          icon.classList.add("active");
+
+          // Hide tooltip after 3 seconds
+          setTimeout(() => {
+            icon.classList.remove("active");
+          }, 3000);
+        }
+      }
+    });
+  });
+
+  // Existing code...
 });

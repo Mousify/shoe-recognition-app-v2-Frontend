@@ -208,7 +208,7 @@ main {
 
 .icon-plus {
   font-size: 0.8rem;
-  margin: 0 4px;
+  margin: 0 8px; /* Increased from 4px to 8px for better spacing */
 }
 
 /* Upload Section */
@@ -759,6 +759,12 @@ textarea::placeholder {
 
 .product-btn:hover {
   background-color: #968c84;
+}
+
+/* Add styling for the View All Products button container */
+.view-all-btn-container {
+  margin-top: 20px; /* Add padding above the View All Products button */
+  text-align: center;
 }
 
 /* Help Section */
