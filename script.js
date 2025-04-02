@@ -1353,58 +1353,35 @@ document.addEventListener("DOMContentLoaded", () => {
 document.addEventListener("DOMContentLoaded", () => {
   // Mobile tooltip behavior
   const tooltipIcons = document.querySelectorAll(".tooltip-icon");
-  let hasUserInteracted = false;
 
-  // Function to show tooltips on mobile by default
-  function showMobileTooltips() {
-    if (window.matchMedia("(hover: none)").matches && !hasUserInteracted) {
-      tooltipIcons.forEach((icon) => {
-        icon.classList.add("active");
-      });
-    }
-  }
-
-  // Show tooltips on page load for mobile
-  showMobileTooltips();
-
-  // Hide tooltips after user interaction (click or scroll)
-  function handleUserInteraction() {
-    if (!hasUserInteracted && window.matchMedia("(hover: none)").matches) {
-      hasUserInteracted = true;
-      tooltipIcons.forEach((icon) => {
-        icon.classList.remove("active");
-      });
-    }
-  }
-
-  // Add event listeners for user interaction
-  document.addEventListener("click", handleUserInteraction);
-  document.addEventListener("scroll", handleUserInteraction);
-
-  // Update the tooltip click behavior for mobile
+  // Update the tooltip click behavior for all devices
   tooltipIcons.forEach((icon) => {
     icon.addEventListener("click", (e) => {
-      // Check if we're on a touch device
-      if (window.matchMedia("(hover: none)").matches) {
-        e.preventDefault();
-        e.stopPropagation();
+      e.preventDefault();
+      e.stopPropagation();
 
-        // Toggle this specific tooltip
-        const isActive = icon.classList.contains("active");
+      // Check if this tooltip is already active
+      const isActive = icon.classList.contains("active");
 
-        // Remove active class from all tooltips
-        tooltipIcons.forEach((i) => i.classList.remove("active"));
+      // Remove active class from all tooltips
+      tooltipIcons.forEach((i) => i.classList.remove("active"));
 
-        // If this tooltip wasn't active, make it active
-        if (!isActive) {
-          icon.classList.add("active");
-
-          // Hide tooltip after 3 seconds
-          setTimeout(() => {
-            icon.classList.remove("active");
-          }, 3000);
-        }
+      // If this tooltip wasn't active, make it active
+      if (!isActive) {
+        icon.classList.add("active");
       }
     });
+  });
+
+  // Close tooltips when clicking elsewhere
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest(".tooltip-icon")) {
+      tooltipIcons.forEach((icon) => icon.classList.remove("active"));
+    }
+  });
+
+  // Close tooltips when scrolling
+  document.addEventListener("scroll", () => {
+    tooltipIcons.forEach((icon) => icon.classList.remove("active"));
   });
 });
