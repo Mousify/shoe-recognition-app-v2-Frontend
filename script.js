@@ -343,7 +343,6 @@ document.addEventListener("DOMContentLoaded", () => {
       answer.textContent = faqItem.answer;
 
       faqDiv.appendChild(question);
-      faqDiv.appendChild(answer);
       faqContainer.appendChild(faqDiv);
     });
 
@@ -1352,8 +1351,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 // Add mobile tooltip behavior to keep tooltips visible until user interaction
 document.addEventListener("DOMContentLoaded", () => {
-  // Existing code...
-
   // Mobile tooltip behavior
   const tooltipIcons = document.querySelectorAll(".tooltip-icon");
   let hasUserInteracted = false;
@@ -1392,11 +1389,6 @@ document.addEventListener("DOMContentLoaded", () => {
         e.preventDefault();
         e.stopPropagation();
 
-        // If this is the first interaction, mark as interacted
-        if (!hasUserInteracted) {
-          hasUserInteracted = true;
-        }
-
         // Toggle this specific tooltip
         const isActive = icon.classList.contains("active");
 
@@ -1415,6 +1407,4 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   });
-
-  // Existing code...
 });
